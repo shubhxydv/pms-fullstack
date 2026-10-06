@@ -57,11 +57,17 @@ jobs:
       - name: Apply migrations to test database
         run: npm run prisma:deploy -w backend
 
-      - name: Run tests with coverage
+      - name: Run backend tests with coverage
         run: npm run test:coverage -w backend
+
+      - name: Run web component tests
+        run: npm run test -w web
 
       - name: Build backend
         run: npm run build -w backend
+
+      - name: Build web
+        run: npm run build -w web
 
       - name: Audit production dependencies
         run: npm audit --omit=dev || true
