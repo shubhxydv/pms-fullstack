@@ -1,11 +1,20 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env.js';
+import { buildOpenApiDocument } from './docs/openapi.js';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { globalRateLimit } from './middleware/rateLimit.js';
+import { prisma } from './lib/prisma.js';
+import { authRouter } from './modules/auth/auth.routes.js';
+import { projectsRouter } from './modules/projects/projects.routes.js';
+import { tasksRouter } from './modules/tasks/tasks.routes.js';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -19,16 +28,32 @@ export function createApp(): Express {
     }),
   );
   app.use(express.json({ limit: '100kb' }));
+  app.use(cookieParser());
   app.use(requestId);
   app.use(requestLogger);
+  app.use(globalRateLimit);
 
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
   });
 
   app.get('/health/ready', async (_req, res) => {
-    res.status(200).json({ status: 'ok' });
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      res.status(200).json({ status: 'ok' });
+    } catch {
+      res.status(503).json({ status: 'unavailable' });
+    }
   });
+
+  const openApiDocument = buildOpenApiDocument();
+  app.get('/docs/openapi.json', (_req, res) => res.status(200).json(openApiDocument));
+  app.use('/docs', helmet({ contentSecurityPolicy: false }), swaggerUi.serve, swaggerUi.setup(openApiDocument));
+
+  app.use('/api/auth', authRouter);
+  app.use('/api/projects', projectsRouter);
+  app.use('/api/tasks', tasksRouter);
+  app.use('/api/dashboard', dashboardRouter);
 
   app.use(notFound);
   app.use(errorHandler);

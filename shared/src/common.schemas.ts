@@ -11,6 +11,9 @@ export const dateStringSchema = z
     return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
   }, 'Date must be a valid calendar date');
 
+export const idParamSchema = z.object({ id: z.string().uuid() }).strict();
+export type IdParam = z.infer<typeof idParamSchema>;
+
 export const paginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
