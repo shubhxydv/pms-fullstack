@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/coverage
+**/.expo
+**/.env
+**/.env.*
+!**/.env.example
+.git
+CLAUDE.md
+PLAN.md
+PROGRESS.md
+.claude

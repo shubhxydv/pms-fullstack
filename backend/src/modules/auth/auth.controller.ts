@@ -80,7 +80,7 @@ export async function logoutHandler(req: Request, res: Response): Promise<void> 
   if (!req.user) {
     throw AppError.unauthenticated();
   }
-  await authService.logout(req.user.sessionId);
+  await authService.logout(req.user.id, req.user.sessionId, getSessionMeta(req));
   clearRefreshCookie(res);
   res.status(204).send();
 }

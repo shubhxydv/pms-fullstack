@@ -179,6 +179,22 @@ registry.registerPath({
   responses: { 200: { description: 'OK' }, ...errorResponses },
 });
 
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/users',
+  summary: 'List all users (ADMIN only)',
+  security: [{ [bearerAuth.name]: [] }],
+  responses: { 200: { description: 'OK' }, 403: { description: 'Forbidden' }, ...errorResponses },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/audit-logs',
+  summary: 'List audit logs (ADMIN only)',
+  security: [{ [bearerAuth.name]: [] }],
+  responses: { 200: { description: 'OK' }, 403: { description: 'Forbidden' }, ...errorResponses },
+});
+
 export function buildOpenApiDocument() {
   const generator = new OpenApiGeneratorV3(registry.definitions);
   return generator.generateDocument({

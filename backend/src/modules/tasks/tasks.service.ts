@@ -3,6 +3,11 @@ import type { Prisma, Task } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../lib/errors.js';
 import { toPageArgs, toPaginationMeta } from '../../lib/pagination.js';
+import { recordAudit } from '../../lib/audit.js';
+
+export interface AuditMeta {
+  ip?: string | null;
+}
 
 export interface TaskDto {
   id: string;
@@ -81,7 +86,11 @@ export async function getTask(ownerId: string, taskId: string): Promise<TaskDto>
   return toTaskDto(task);
 }
 
-export async function createTask(ownerId: string, input: CreateTaskInput): Promise<TaskDto> {
+export async function createTask(
+  ownerId: string,
+  input: CreateTaskInput,
+  meta: AuditMeta = {},
+): Promise<TaskDto> {
   const project = await prisma.project.findFirst({
     where: { id: input.projectId, ownerId },
   });
@@ -99,6 +108,13 @@ export async function createTask(ownerId: string, input: CreateTaskInput): Promi
       dueDate: new Date(input.dueDate),
     },
   });
+  await recordAudit({
+    userId: ownerId,
+    action: 'TASK_CREATED',
+    entityType: 'Task',
+    entityId: task.id,
+    ip: meta.ip,
+  });
   return toTaskDto(task);
 }
 
@@ -106,6 +122,7 @@ export async function updateTask(
   ownerId: string,
   taskId: string,
   input: UpdateTaskInput,
+  meta: AuditMeta = {},
 ): Promise<TaskDto> {
   await findOwnedTask(ownerId, taskId);
 
@@ -119,10 +136,29 @@ export async function updateTask(
       dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
     },
   });
+  await recordAudit({
+    userId: ownerId,
+    action: 'TASK_UPDATED',
+    entityType: 'Task',
+    entityId: taskId,
+    metadata: input,
+    ip: meta.ip,
+  });
   return toTaskDto(task);
 }
 
-export async function deleteTask(ownerId: string, taskId: string): Promise<void> {
+export async function deleteTask(
+  ownerId: string,
+  taskId: string,
+  meta: AuditMeta = {},
+): Promise<void> {
   await findOwnedTask(ownerId, taskId);
   await prisma.task.delete({ where: { id: taskId } });
+  await recordAudit({
+    userId: ownerId,
+    action: 'TASK_DELETED',
+    entityType: 'Task',
+    entityId: taskId,
+    ip: meta.ip,
+  });
 }

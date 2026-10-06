@@ -1,4 +1,4 @@
-import rateLimit, { type Options } from 'express-rate-limit';
+import rateLimit, { type Options, type RateLimitRequestHandler } from 'express-rate-limit';
 import type { Request, Response } from 'express';
 
 function rateLimitHandler(_req: Request, res: Response): void {
@@ -13,26 +13,18 @@ const base: Partial<Options> = {
   handler: rateLimitHandler,
 };
 
-export const loginRateLimit = rateLimit({
-  ...base,
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-});
+export function createLoginRateLimit(): RateLimitRequestHandler {
+  return rateLimit({ ...base, windowMs: 15 * 60 * 1000, limit: 10 });
+}
 
-export const registerRateLimit = rateLimit({
-  ...base,
-  windowMs: 60 * 60 * 1000,
-  limit: 5,
-});
+export function createRegisterRateLimit(): RateLimitRequestHandler {
+  return rateLimit({ ...base, windowMs: 60 * 60 * 1000, limit: 5 });
+}
 
-export const refreshRateLimit = rateLimit({
-  ...base,
-  windowMs: 15 * 60 * 1000,
-  limit: 30,
-});
+export function createRefreshRateLimit(): RateLimitRequestHandler {
+  return rateLimit({ ...base, windowMs: 15 * 60 * 1000, limit: 30 });
+}
 
-export const globalRateLimit = rateLimit({
-  ...base,
-  windowMs: 60 * 1000,
-  limit: 300,
-});
+export function createGlobalRateLimit(): RateLimitRequestHandler {
+  return rateLimit({ ...base, windowMs: 60 * 1000, limit: 300 });
+}

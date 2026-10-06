@@ -1,8 +1,9 @@
 import { existsSync } from 'node:fs';
 import { z } from 'zod';
 
-if (existsSync('.env')) {
-  process.loadEnvFile('.env');
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+if (existsSync(envFile)) {
+  process.loadEnvFile(envFile);
 }
 
 const envSchema = z.object({
@@ -14,7 +15,7 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().min(1, 'CORS_ORIGINS is required (comma-separated)'),
   CRON_SECRET: z.string().min(16, 'CRON_SECRET must be at least 16 characters'),
   APP_TIMEZONE: z.string().default('Asia/Kolkata'),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 
 const parsed = envSchema.safeParse(process.env);

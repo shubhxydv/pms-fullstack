@@ -1,0 +1,46 @@
+name: pms-full
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pms
+      POSTGRES_PASSWORD: pms_dev_password
+      POSTGRES_DB: pms
+    volumes:
+      - pms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pms -d pms']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '4000:4000'
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://pms:pms_dev_password@postgres:5432/pms?schema=public
+      DIRECT_URL: postgresql://pms:pms_dev_password@postgres:5432/pms?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_this_to_a_random_64_char_hex_string_min32}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      CRON_SECRET: ${CRON_SECRET:-change_this_cron_secret}
+      APP_TIMEZONE: Asia/Kolkata
+    command: sh -c "cd backend && npx prisma migrate deploy && node dist/server.js"
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pms_postgres_data:

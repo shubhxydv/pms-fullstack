@@ -10,6 +10,7 @@ import {
 } from '../../lib/refreshToken.js';
 import { AppError } from '../../lib/errors.js';
 import { toUserDto, type UserDto } from '../../lib/dto.js';
+import { recordAudit } from '../../lib/audit.js';
 
 export interface SessionMeta {
   ip?: string;
@@ -50,6 +51,13 @@ export async function register(input: RegisterInput, meta: SessionMeta): Promise
   });
 
   const { accessToken, refreshToken } = await createSession(user.id, user.role, newFamilyId(), meta);
+  await recordAudit({
+    userId: user.id,
+    action: 'USER_REGISTERED',
+    entityType: 'User',
+    entityId: user.id,
+    ip: meta.ip,
+  });
   return { user: toUserDto(user), accessToken, refreshToken };
 }
 
@@ -58,15 +66,35 @@ export async function login(input: LoginInput, meta: SessionMeta): Promise<AuthR
 
   if (!user) {
     await verifyAgainstDummyHash(input.password);
+    await recordAudit({
+      action: 'LOGIN_FAILED',
+      entityType: 'User',
+      metadata: { email: input.email },
+      ip: meta.ip,
+    });
     throw AppError.unauthenticated('Invalid email or password');
   }
 
   const valid = await verifyPassword(input.password, user.passwordHash);
   if (!valid) {
+    await recordAudit({
+      userId: user.id,
+      action: 'LOGIN_FAILED',
+      entityType: 'User',
+      entityId: user.id,
+      ip: meta.ip,
+    });
     throw AppError.unauthenticated('Invalid email or password');
   }
 
   const { accessToken, refreshToken } = await createSession(user.id, user.role, newFamilyId(), meta);
+  await recordAudit({
+    userId: user.id,
+    action: 'LOGIN_SUCCEEDED',
+    entityType: 'User',
+    entityId: user.id,
+    ip: meta.ip,
+  });
   return { user: toUserDto(user), accessToken, refreshToken };
 }
 
@@ -113,10 +141,17 @@ export async function refresh(rawToken: string, meta: SessionMeta): Promise<Auth
   return { user: toUserDto(session.user), accessToken, refreshToken: newRefreshToken };
 }
 
-export async function logout(sessionId: string): Promise<void> {
+export async function logout(userId: string, sessionId: string, meta: SessionMeta = {}): Promise<void> {
   await prisma.session.update({
     where: { id: sessionId },
     data: { revokedAt: new Date() },
+  });
+  await recordAudit({
+    userId,
+    action: 'LOGOUT',
+    entityType: 'Session',
+    entityId: sessionId,
+    ip: meta.ip,
   });
 }
 

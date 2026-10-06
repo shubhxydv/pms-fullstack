@@ -3,6 +3,11 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../lib/errors.js';
 import { toPageArgs, toPaginationMeta } from '../../lib/pagination.js';
+import { recordAudit } from '../../lib/audit.js';
+
+export interface AuditMeta {
+  ip?: string | null;
+}
 
 export interface ProjectDto {
   id: string;
@@ -104,7 +109,11 @@ export async function getProject(ownerId: string, projectId: string): Promise<Pr
   };
 }
 
-export async function createProject(ownerId: string, input: CreateProjectInput): Promise<ProjectDto> {
+export async function createProject(
+  ownerId: string,
+  input: CreateProjectInput,
+  meta: AuditMeta = {},
+): Promise<ProjectDto> {
   const project = await prisma.project.create({
     data: {
       ownerId,
@@ -115,6 +124,13 @@ export async function createProject(ownerId: string, input: CreateProjectInput):
       endDate: new Date(input.endDate),
     },
   });
+  await recordAudit({
+    userId: ownerId,
+    action: 'PROJECT_CREATED',
+    entityType: 'Project',
+    entityId: project.id,
+    ip: meta.ip,
+  });
   return getProject(ownerId, project.id);
 }
 
@@ -122,6 +138,7 @@ export async function updateProject(
   ownerId: string,
   projectId: string,
   input: UpdateProjectInput,
+  meta: AuditMeta = {},
 ): Promise<ProjectDto> {
   const existing = await assertOwned(ownerId, projectId);
 
@@ -143,11 +160,30 @@ export async function updateProject(
       endDate: input.endDate ? nextEnd : undefined,
     },
   });
+  await recordAudit({
+    userId: ownerId,
+    action: 'PROJECT_UPDATED',
+    entityType: 'Project',
+    entityId: projectId,
+    metadata: input,
+    ip: meta.ip,
+  });
 
   return getProject(ownerId, projectId);
 }
 
-export async function deleteProject(ownerId: string, projectId: string): Promise<void> {
+export async function deleteProject(
+  ownerId: string,
+  projectId: string,
+  meta: AuditMeta = {},
+): Promise<void> {
   await assertOwned(ownerId, projectId);
   await prisma.project.delete({ where: { id: projectId } });
+  await recordAudit({
+    userId: ownerId,
+    action: 'PROJECT_DELETED',
+    entityType: 'Project',
+    entityId: projectId,
+    ip: meta.ip,
+  });
 }

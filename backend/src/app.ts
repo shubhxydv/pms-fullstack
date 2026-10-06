@@ -9,12 +9,13 @@ import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import { globalRateLimit } from './middleware/rateLimit.js';
+import { createGlobalRateLimit } from './middleware/rateLimit.js';
 import { prisma } from './lib/prisma.js';
-import { authRouter } from './modules/auth/auth.routes.js';
+import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { projectsRouter } from './modules/projects/projects.routes.js';
 import { tasksRouter } from './modules/tasks/tasks.routes.js';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
+import { adminRouter } from './modules/admin/admin.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -31,7 +32,7 @@ export function createApp(): Express {
   app.use(cookieParser());
   app.use(requestId);
   app.use(requestLogger);
-  app.use(globalRateLimit);
+  app.use(createGlobalRateLimit());
 
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
@@ -50,10 +51,11 @@ export function createApp(): Express {
   app.get('/docs/openapi.json', (_req, res) => res.status(200).json(openApiDocument));
   app.use('/docs', helmet({ contentSecurityPolicy: false }), swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
-  app.use('/api/auth', authRouter);
+  app.use('/api/auth', createAuthRouter());
   app.use('/api/projects', projectsRouter);
   app.use('/api/tasks', tasksRouter);
   app.use('/api/dashboard', dashboardRouter);
+  app.use('/api/admin', adminRouter);
 
   app.use(notFound);
   app.use(errorHandler);
