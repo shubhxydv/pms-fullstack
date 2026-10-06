@@ -16,6 +16,10 @@ const envSchema = z.object({
   CRON_SECRET: z.string().min(16, 'CRON_SECRET must be at least 16 characters'),
   APP_TIMEZONE: z.string().default('Asia/Kolkata'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  // Firebase Cloud Messaging (push notifications). Optional: when unset, push sending
+  // no-ops with a warning instead of crashing, so dev/test/CI never need it.
+  FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_PATH: z.string().default('./secrets/firebase-service-account.json'),
 });
 
 const parsed = envSchema.safeParse(process.env);

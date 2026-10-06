@@ -34,3 +34,6 @@ android/app/build/
 
 .vercel
 .turbo
+
+backend/secrets/
+*-firebase-adminsdk-*.json

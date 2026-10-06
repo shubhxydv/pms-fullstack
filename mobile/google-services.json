@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "841214615907",
+    "project_id": "pms-fullstack-d4b1c",
+    "storage_bucket": "pms-fullstack-d4b1c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841214615907:android:cc7b9896791b4c16cd3356",
+        "android_client_info": {
+          "package_name": "com.shubhxydv.pms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABdvyviBsMQqzLMU8BwQ0xvF2D10ixAho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

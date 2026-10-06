@@ -1,14 +1,61 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Switch, Text, View, StyleSheet } from 'react-native';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Button } from '../../components/Button';
 import { useToast } from '../../components/ToastProvider';
+import {
+  getStoredPreference,
+  enableNotifications,
+  disableNotifications,
+} from '../../lib/notifications';
+import { sendTestPush } from '../../features/notifications/api';
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const { showToast } = useToast();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isTogglingNotifications, setIsTogglingNotifications] = useState(false);
+  const [isSendingTestPush, setIsSendingTestPush] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    getStoredPreference().then(setNotificationsEnabled);
+  }, []);
+
+  async function handleToggleNotifications(next: boolean) {
+    setIsTogglingNotifications(true);
+    try {
+      if (next) {
+        const granted = await enableNotifications();
+        setNotificationsEnabled(granted);
+        if (!granted) {
+          showToast('Notification permission was denied.', 'error');
+        }
+      } else {
+        await disableNotifications();
+        setNotificationsEnabled(false);
+      }
+    } catch {
+      showToast('Could not update notification settings.', 'error');
+    } finally {
+      setIsTogglingNotifications(false);
+    }
+  }
+
+  async function handleTestPush() {
+    setIsSendingTestPush(true);
+    try {
+      const result = await sendTestPush();
+      showToast(
+        result.sent > 0 ? 'Test push sent — check your notifications.' : 'No push was delivered (device not registered).',
+        result.sent > 0 ? 'success' : 'error',
+      );
+    } catch {
+      showToast('Could not send a test push.', 'error');
+    } finally {
+      setIsSendingTestPush(false);
+    }
+  }
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -42,8 +89,20 @@ export default function SettingsScreen() {
             <Text style={styles.rowLabel}>Due-tomorrow notifications</Text>
             <Text style={styles.rowHint}>Get notified about tasks due tomorrow</Text>
           </View>
-          <Switch value={notificationsEnabled} onValueChange={setNotificationsEnabled} />
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={handleToggleNotifications}
+            disabled={isTogglingNotifications}
+          />
         </View>
+        {notificationsEnabled && (
+          <Button
+            title="Send test push"
+            variant="secondary"
+            onPress={handleTestPush}
+            isLoading={isSendingTestPush}
+          />
+        )}
       </View>
 
       <Button title="Log out" variant="danger" onPress={confirmLogout} isLoading={isLoggingOut} />

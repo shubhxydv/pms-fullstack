@@ -16,6 +16,7 @@ import { projectsRouter } from './modules/projects/projects.routes.js';
 import { tasksRouter } from './modules/tasks/tasks.routes.js';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
+import { notificationsRouter } from './modules/notifications/notifications.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -56,6 +57,7 @@ export function createApp(): Express {
   app.use('/api/tasks', tasksRouter);
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api/admin', adminRouter);
+  app.use('/api/notifications', notificationsRouter);
 
   app.use(notFound);
   app.use(errorHandler);

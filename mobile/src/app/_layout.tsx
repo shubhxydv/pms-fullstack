@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '../lib/query-client';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { queryClient, asyncStoragePersister, PERSISTED_CACHE_MAX_AGE_MS } from '../lib/query-client';
 import { AuthProvider, useAuth } from '../features/auth/AuthContext';
 import { ToastProvider } from '../components/ToastProvider';
 import { OfflineBanner } from '../components/OfflineBanner';
+import { reregisterIfEnabled, subscribeToNotificationTaps } from '../lib/notifications';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -20,6 +21,16 @@ function RootNavigator() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [isBootstrapping]);
+
+  useEffect(() => {
+    if (!user) return;
+    reregisterIfEnabled();
+    return subscribeToNotificationTaps((data) => {
+      if (data.projectId) {
+        router.push(`/(tabs)/projects/${data.projectId}`);
+      }
+    });
+  }, [user]);
 
   if (isBootstrapping) {
     return null;
@@ -43,7 +54,10 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: asyncStoragePersister, maxAge: PERSISTED_CACHE_MAX_AGE_MS }}
+        >
           <AuthProvider>
             <ToastProvider>
               <StatusBar style="auto" />
@@ -51,7 +65,7 @@ export default function RootLayout() {
               <RootNavigator />
             </ToastProvider>
           </AuthProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

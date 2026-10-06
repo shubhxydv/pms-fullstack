@@ -7,6 +7,7 @@ import {
   updateProjectSchema,
   createTaskSchema,
   updateTaskSchema,
+  registerTokenSchema,
 } from '@pms/shared';
 
 extendZodWithOpenApi(z);
@@ -193,6 +194,46 @@ registry.registerPath({
   summary: 'List audit logs (ADMIN only)',
   security: [{ [bearerAuth.name]: [] }],
   responses: { 200: { description: 'OK' }, 403: { description: 'Forbidden' }, ...errorResponses },
+});
+
+const cronAuth = registry.registerComponent('securitySchemes', 'cronAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  description: 'CRON_SECRET, for the scheduled job trigger only',
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/notifications/register-token',
+  summary: 'Register (or refresh) this device’s push token',
+  security: [{ [bearerAuth.name]: [] }],
+  request: { body: jsonBody(registerTokenSchema) },
+  responses: { 204: { description: 'No Content' }, ...errorResponses },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/notifications/unregister-token',
+  summary: 'Remove a push token (e.g. on logout)',
+  security: [{ [bearerAuth.name]: [] }],
+  request: { body: jsonBody(z.object({ token: z.string().min(1) })) },
+  responses: { 204: { description: 'No Content' }, ...errorResponses },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/notifications/test',
+  summary: 'Send a test push to all of the current user’s registered devices',
+  security: [{ [bearerAuth.name]: [] }],
+  responses: { 200: { description: 'OK' }, ...errorResponses },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/notifications/cron/due-soon',
+  summary: 'Scheduled job: push for tasks due tomorrow (dedupes via notification_log)',
+  security: [{ [cronAuth.name]: [] }],
+  responses: { 200: { description: 'OK' }, 401: { description: 'Invalid cron secret' } },
 });
 
 export function buildOpenApiDocument() {
