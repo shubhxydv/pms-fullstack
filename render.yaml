@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: pms-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+      - key: LOG_LEVEL
+        value: info
+    dockerCommand: sh -c "cd backend && npx prisma migrate deploy && node dist/server.js"

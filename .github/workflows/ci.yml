@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pms
+          POSTGRES_PASSWORD: pms_ci_password
+          POSTGRES_DB: pms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pms -d pms_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://pms:pms_ci_password@localhost:5432/pms_test?schema=public
+      DIRECT_URL: postgresql://pms:pms_ci_password@localhost:5432/pms_test?schema=public
+      JWT_ACCESS_SECRET: ci_only_secret_do_not_use_in_prod_0000000000000
+      CORS_ORIGINS: http://localhost:5173
+      CRON_SECRET: ci_only_cron_secret_000
+      PORT: 4001
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build shared package
+        run: npm run build -w shared
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Prisma generate
+        run: npm run prisma:generate -w backend
+
+      - name: Apply migrations to test database
+        run: npm run prisma:deploy -w backend
+
+      - name: Run tests with coverage
+        run: npm run test:coverage -w backend
+
+      - name: Build backend
+        run: npm run build -w backend
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev || true
+
+      - name: Build backend Docker image
+        run: docker build -f backend/Dockerfile -t pms-backend:ci .
