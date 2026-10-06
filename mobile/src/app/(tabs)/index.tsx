@@ -9,10 +9,19 @@ import { ErrorRetry } from '../../components/ErrorRetry';
 import { EmptyState } from '../../components/EmptyState';
 import { Badge } from '../../components/Badge';
 import { getApiErrorMessage } from '../../lib/api/isApiError';
+import { useNetworkStatus } from '../../hooks/use-network-status';
+
+function formatUpdatedAt(timestamp: number): string {
+  const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  return `${Math.round(minutes / 60)}h ago`;
+}
 
 export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const isConnected = useNetworkStatus();
+  const { data, dataUpdatedAt, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['dashboard'],
     queryFn: fetchDashboard,
   });
@@ -38,6 +47,12 @@ export default function DashboardScreen() {
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      {!isConnected && dataUpdatedAt > 0 && (
+        <Text style={styles.staleNotice} accessibilityRole="text">
+          Showing cached data from {formatUpdatedAt(dataUpdatedAt)}
+        </Text>
+      )}
+
       <View style={styles.statsGrid}>
         <StatCard label="Total projects" value={data.totalProjects} />
         <StatCard label="Total tasks" value={data.totalTasks} />
@@ -78,6 +93,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', padding: 16 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: '#64748B', textTransform: 'uppercase' },
+  staleNotice: { fontSize: 12, color: '#92400E', backgroundColor: '#FEF3C7', padding: 8, borderRadius: 8 },
   list: { gap: 8 },
   row: {
     backgroundColor: '#FFFFFF',
