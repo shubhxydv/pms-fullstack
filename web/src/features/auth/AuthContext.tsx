@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { LoginInput, RegisterInput } from '@pms/shared';
 import * as authApi from './api';
 import type { UserDto } from './types';
+import { queryClient } from '../../app/queryClient';
 
 interface AuthContextValue {
   user: UserDto | null;
@@ -32,16 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(input: LoginInput): Promise<void> {
     const loggedInUser = await authApi.login(input);
+    queryClient.clear();
     setUser(loggedInUser);
   }
 
   async function register(input: RegisterInput): Promise<void> {
     const registeredUser = await authApi.register(input);
+    queryClient.clear();
     setUser(registeredUser);
   }
 
   async function logout(): Promise<void> {
     await authApi.logout();
+    queryClient.clear();
     setUser(null);
   }
 
