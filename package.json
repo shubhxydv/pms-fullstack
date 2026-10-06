@@ -1,0 +1,32 @@
+{
+  "name": "pms-fullstack",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "backend",
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w backend",
+    "dev:web": "npm run dev -w web",
+    "build": "npm run build -w shared && npm run build --if-present -w backend && npm run build --if-present -w web",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "npm run typecheck --if-present -ws",
+    "test": "npm run test --if-present -ws",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
