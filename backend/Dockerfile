@@ -32,4 +32,4 @@ COPY --from=build --chown=appuser:appgroup /app/backend/prisma ./backend/prisma
 
 USER appuser
 EXPOSE 4000
-CMD ["node", "backend/dist/server.js"]
+CMD ["sh", "-c", "cd backend && npx prisma migrate deploy && node dist/server.js"]

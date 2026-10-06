@@ -26,4 +26,3 @@ services:
         value: Asia/Kolkata
       - key: LOG_LEVEL
         value: info
-    dockerCommand: sh -c "cd backend && npx prisma migrate deploy && node dist/server.js"
