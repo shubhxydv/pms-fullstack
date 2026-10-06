@@ -3,6 +3,9 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { freshApp, registerUser, authHeader, type TestUser } from '../helpers.js';
 import { todayDateString, dateOnlyToUtcMidnight } from '../../src/lib/date.js';
+import { env } from '../../src/config/env.js';
+
+const cronAuthHeader = { Authorization: `Bearer ${env.CRON_SECRET}` };
 
 async function createProject(app: Express, user: TestUser): Promise<string> {
   const res = await request(app)
@@ -69,13 +72,13 @@ describe('Notifications', () => {
 
     const first = await request(app)
       .post('/api/notifications/cron/due-soon')
-      .set('Authorization', 'Bearer test_cron_secret_0000');
+      .set(cronAuthHeader);
     expect(first.status).toBe(200);
     expect(first.body.data.checked).toBe(1);
 
     const second = await request(app)
       .post('/api/notifications/cron/due-soon')
-      .set('Authorization', 'Bearer test_cron_secret_0000');
+      .set(cronAuthHeader);
     expect(second.status).toBe(200);
     expect(second.body.data.checked).toBe(0);
   });
@@ -95,7 +98,7 @@ describe('Notifications', () => {
 
     const res = await request(app)
       .post('/api/notifications/cron/due-soon')
-      .set('Authorization', 'Bearer test_cron_secret_0000');
+      .set(cronAuthHeader);
     expect(res.status).toBe(200);
     expect(res.body.data.checked).toBe(0);
   });

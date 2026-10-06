@@ -214,7 +214,11 @@ All endpoints are under `/api`, require `Authorization: Bearer <accessToken>` ex
 ### Against the deployed backend (default)
 The APK and Expo Go both point at `https://pms-backend-qiir.onrender.com/api` out of the box — no setup needed.
 
-**Install the APK:** [link/instructions filled in once the build finishes — see PROGRESS.md]
+**Install the APK:** built locally via Gradle (`mobile/android/app/build/outputs/apk/release/app-release.apk`, ~105MB, universal/all-ABIs) — not checked into git (`*.apk` is gitignored; it's a build artifact, not source). To install it on a phone:
+- **USB**: enable Developer Options → USB debugging on the phone, connect it, then `adb install app-release.apk` from `mobile/android/app/build/outputs/apk/release/`.
+- **Wi-Fi**: with the phone on the same network as the build machine, serve the file (`python -m http.server 8765` from that folder) and open `http://<build-machine-LAN-IP>:8765/app-release.apk` in the phone's browser to download and install (allow "install from unknown sources" when prompted).
+
+A cloud-built APK via `eas build --platform android --profile preview` was also started (see PROGRESS.md) as a backup, since EAS's free-tier build queue can take hours; it produces a shareable Expo-hosted download link once it clears the queue.
 
 **Expo Go** (fastest way to try it, works on iOS too): `cd mobile && npx expo start`, then scan the QR code. On a physical device, Expo Go talks directly to the deployed API, so no tunnel/network setup is required — if you'd rather point at a local backend, use `expo start --tunnel` instead.
 
