@@ -6,6 +6,7 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 COPY shared/package.json shared/package.json
 COPY backend/package.json backend/package.json
+COPY backend/prisma backend/prisma
 RUN npm ci
 
 FROM deps AS build

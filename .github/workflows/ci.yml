@@ -54,9 +54,6 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Prisma generate
-        run: npm run prisma:generate -w backend
-
       - name: Apply migrations to test database
         run: npm run prisma:deploy -w backend
 
