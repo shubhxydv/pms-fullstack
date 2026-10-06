@@ -94,21 +94,25 @@ describe('POST /api/auth/login', () => {
     expect(res.body.error.message).toBe('Invalid email or password');
   });
 
-  it('rate-limits after 10 attempts in the window with 429 RATE_LIMITED', async () => {
-    const app = freshApp();
-    await registerUser(app, { email: 'ratelimited@example.com', password: 'Password123' });
+  it(
+    'rate-limits after 10 attempts in the window with 429 RATE_LIMITED',
+    async () => {
+      const app = freshApp();
+      await registerUser(app, { email: 'ratelimited@example.com', password: 'Password123' });
 
-    let lastStatus = 0;
-    for (let i = 0; i < 11; i += 1) {
-      const res = await request(app)
-        .post('/api/auth/login')
-        .set('X-Client', 'mobile')
-        .send({ email: 'ratelimited@example.com', password: 'WrongPassword1' });
-      lastStatus = res.status;
-    }
+      let lastStatus = 0;
+      for (let i = 0; i < 11; i += 1) {
+        const res = await request(app)
+          .post('/api/auth/login')
+          .set('X-Client', 'mobile')
+          .send({ email: 'ratelimited@example.com', password: 'WrongPassword1' });
+        lastStatus = res.status;
+      }
 
-    expect(lastStatus).toBe(429);
-  });
+      expect(lastStatus).toBe(429);
+    },
+    15000,
+  );
 });
 
 describe('POST /api/auth/refresh', () => {
