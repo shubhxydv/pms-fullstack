@@ -33,3 +33,13 @@ Admin RBAC is deliberately boring: the `/admin/*` routes are a separate namespac
 A reviewer is likely to ask: "why not just test the real rate limiter module directly?" Answer: it's a module-level object in Express by convention, so if I hadn't refactored it to a factory, every test file sharing one `loginRateLimit` instance would make test outcomes depend on execution order — a classic flaky-test trap that's worth naming even though it never shipped broken.
 
 Verify: `docker compose -f docker-compose.dev.yml up -d`, then from `backend/`: `cp .env.test.example .env.test` and `npm run test:coverage` (expect 49 tests passing, ~98% statement coverage). For Docker: `docker compose up --build` from the repo root brings up Postgres + the backend from nothing, running migrations automatically; `curl localhost:4000/health`.
+
+## P3: Deploy and CI
+
+The backend is live at https://pms-backend-qiir.onrender.com, backed by Neon Postgres, deployed via a Render Blueprint (`render.yaml`) that's wired to auto-deploy on every push to `main`. Hit a genuinely interesting platform difference here: my Dockerfile's `CMD` originally just started the server, and I tried to inject "run migrations first" via render.yaml's `dockerCommand: sh -c "cd backend && npx prisma migrate deploy && node dist/server.js"` — the same string that works perfectly as Docker Compose's `command:` field. Render executed it literally as a single process name instead of shell-splitting it, so the deploy failed with "command not found." The fix was to stop treating the start command as something each deploy target configures separately, and bake it into the Dockerfile's own `CMD` as a proper exec-form array instead — one source of truth that behaves identically under `docker run`, Compose, and Render, because none of them get a chance to mis-parse a raw string.
+
+I also couldn't verify the Neon connection myself from this laptop — `Test-NetConnection` showed port 443 reaching Neon fine but port 5432 timing out to all three resolved IPs, which is a campus-network port block, not a Neon or credentials problem. This didn't actually block anything: the real migration run happens on Render's own infrastructure when it deploys, which isn't behind that network restriction, and the live smoke test proves it worked.
+
+A reviewer is likely to ask: "why does CORS_ORIGINS on Render still say localhost?" Answer: it's a placeholder until the Vercel URL exists in P4 — updating it is a one-line env var change, not a code change, which is the point of keeping it out of the Zod-validated-but-env-driven config.
+
+Verify: `curl https://pms-backend-qiir.onrender.com/health` and `/health/ready` (the latter proves Neon connectivity); full API docs at `https://pms-backend-qiir.onrender.com/docs`.
