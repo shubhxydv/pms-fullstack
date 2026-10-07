@@ -92,7 +92,7 @@ shared/    @pms/shared — Zod schemas + inferred types, imported by backend, we
 backend/   Express API (routes → controller → service → Prisma), tests, Dockerfile
 web/       React + Vite SPA
 mobile/    Expo Router app (Android + iOS)
-docs/      DECISIONS.md (design rationale), openapi.json (exported API spec)
+docs/      openapi.json (exported API spec), er-diagram.png
 ```
 
 ## 5. Environment variables
@@ -259,7 +259,3 @@ npm run lint                # eslint, repo-wide
 ```
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, and the full backend test suite (with a real Postgres service container) on every push and PR. `keep-alive.yml` pings `/health` every 5 minutes so the Render free-tier instance doesn't cold-start before a review. `due-soon-notifications.yml` triggers the push job daily.
-
-## 12. Design decisions and trade-offs
-
-See [`docs/DECISIONS.md`](docs/DECISIONS.md) for the reasoning behind the non-obvious choices in this project — why Prisma was pinned, the three real bugs found through live testing (not just green test suites) and how each was fixed, the platform differences between web and mobile auth storage, and the environment issues hit along the way.
