@@ -10,6 +10,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { Badge } from '../../components/Badge';
 import { getApiErrorMessage } from '../../lib/api/isApiError';
 import { useNetworkStatus } from '../../hooks/use-network-status';
+import { useRefetchOnFocus } from '../../hooks/use-refetch-on-focus';
 
 function formatUpdatedAt(timestamp: number): string {
   const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
@@ -25,6 +26,7 @@ export default function DashboardScreen() {
     queryKey: ['dashboard'],
     queryFn: fetchDashboard,
   });
+  useRefetchOnFocus(refetch);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

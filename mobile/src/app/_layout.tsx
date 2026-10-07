@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { focusManager } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, asyncStoragePersister, PERSISTED_CACHE_MAX_AGE_MS } from '../lib/query-client';
 import { AuthProvider, useAuth } from '../features/auth/AuthContext';
@@ -12,6 +14,12 @@ import { OfflineBanner } from '../components/OfflineBanner';
 import { reregisterIfEnabled, subscribeToNotificationTaps } from '../lib/notifications';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// React Query has no "window focus" event on native — AppState is the equivalent,
+// so refetchOnWindowFocus-style behavior only works once this is wired up.
+AppState.addEventListener('change', (status: AppStateStatus) => {
+  focusManager.setFocused(status === 'active');
+});
 
 function RootNavigator() {
   const { user, isBootstrapping } = useAuth();

@@ -22,6 +22,7 @@ import { ChipSelect } from '../../../components/ChipSelect';
 import { useToast } from '../../../components/ToastProvider';
 import { getApiErrorMessage } from '../../../lib/api/isApiError';
 import type { TaskDto } from '../../../features/tasks/types';
+import { useRefetchOnFocus } from '../../../hooks/use-refetch-on-focus';
 
 export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,6 +53,8 @@ export default function ProjectDetailScreen() {
       }),
     enabled: Boolean(id),
   });
+  useRefetchOnFocus(projectQuery.refetch);
+  useRefetchOnFocus(tasksQuery.refetch);
 
   function invalidateAll() {
     queryClient.invalidateQueries({ queryKey: ['tasks', id] });

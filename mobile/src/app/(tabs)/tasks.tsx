@@ -11,6 +11,7 @@ import { ChipSelect } from '../../components/ChipSelect';
 import { useToast } from '../../components/ToastProvider';
 import { getApiErrorMessage } from '../../lib/api/isApiError';
 import type { TaskDto } from '../../features/tasks/types';
+import { useRefetchOnFocus } from '../../hooks/use-refetch-on-focus';
 
 export default function AllTasksScreen() {
   const { showToast } = useToast();
@@ -38,6 +39,7 @@ export default function AllTasksScreen() {
         order: 'asc',
       }),
   });
+  useRefetchOnFocus(refetch);
 
   const quickUpdateMutation = useMutation({
     mutationFn: ({ taskId, status }: { taskId: string; status: TaskDto['status'] }) =>

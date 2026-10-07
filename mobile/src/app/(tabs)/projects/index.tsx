@@ -13,6 +13,7 @@ import { ChipSelect } from '../../../components/ChipSelect';
 import { useToast } from '../../../components/ToastProvider';
 import { getApiErrorMessage } from '../../../lib/api/isApiError';
 import type { ProjectDto } from '../../../features/projects/types';
+import { useRefetchOnFocus } from '../../../hooks/use-refetch-on-focus';
 
 export default function ProjectsScreen() {
   const { showToast } = useToast();
@@ -43,6 +44,7 @@ export default function ProjectsScreen() {
         pageSize,
       }),
   });
+  useRefetchOnFocus(refetch);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => projectsApi.deleteProject(id),
