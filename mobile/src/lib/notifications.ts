@@ -29,8 +29,13 @@ async function getDeviceToken(): Promise<string | null> {
   if (status !== 'granted') {
     return null;
   }
-  const { data } = await Notifications.getDevicePushTokenAsync();
-  return data;
+  try {
+    const { data } = await Notifications.getDevicePushTokenAsync();
+    return data;
+  } catch (err) {
+    console.error('[notifications] getDevicePushTokenAsync failed', err);
+    throw err;
+  }
 }
 
 /** Requests permission, registers the device's FCM token with the backend, and persists the toggle. */

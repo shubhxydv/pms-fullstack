@@ -35,7 +35,8 @@ export default function SettingsScreen() {
         await disableNotifications();
         setNotificationsEnabled(false);
       }
-    } catch {
+    } catch (err) {
+      console.error('[settings] handleToggleNotifications failed', err);
       showToast('Could not update notification settings.', 'error');
     } finally {
       setIsTogglingNotifications(false);
