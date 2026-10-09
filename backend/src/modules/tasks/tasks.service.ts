@@ -1,3 +1,4 @@
+// Task business logic: ownership-scoped CRUD (via the parent project's owner), search/filter/sort, and audit logging.
 import type { CreateTaskInput, ListResponse, TaskQuery, UpdateTaskInput } from '@pms/shared';
 import type { Prisma, Task } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
@@ -21,10 +22,12 @@ export interface TaskDto {
   updatedAt: string;
 }
 
+// Formats a Date as YYYY-MM-DD
 function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+// Maps a Prisma Task to the client-facing DTO
 function toTaskDto(task: Task): TaskDto {
   return {
     id: task.id,
@@ -39,6 +42,7 @@ function toTaskDto(task: Task): TaskDto {
   };
 }
 
+// Throws 404 unless the task's project belongs to this owner
 async function findOwnedTask(ownerId: string, taskId: string) {
   const task = await prisma.task.findFirst({
     where: { id: taskId, project: { ownerId } },
@@ -49,6 +53,7 @@ async function findOwnedTask(ownerId: string, taskId: string) {
   return task;
 }
 
+// Lists tasks with search, filter, sort, paging
 export async function listTasks(ownerId: string, query: TaskQuery): Promise<ListResponse<TaskDto>> {
   const where: Prisma.TaskWhereInput = {
     project: { ownerId },
@@ -81,11 +86,13 @@ export async function listTasks(ownerId: string, query: TaskQuery): Promise<List
   };
 }
 
+// Fetches one task, checking ownership
 export async function getTask(ownerId: string, taskId: string): Promise<TaskDto> {
   const task = await findOwnedTask(ownerId, taskId);
   return toTaskDto(task);
 }
 
+// Creates a task under an owned project
 export async function createTask(
   ownerId: string,
   input: CreateTaskInput,
@@ -118,6 +125,7 @@ export async function createTask(
   return toTaskDto(task);
 }
 
+// Updates a task after checking ownership
 export async function updateTask(
   ownerId: string,
   taskId: string,
@@ -147,6 +155,7 @@ export async function updateTask(
   return toTaskDto(task);
 }
 
+// Deletes a task after checking ownership
 export async function deleteTask(
   ownerId: string,
   taskId: string,

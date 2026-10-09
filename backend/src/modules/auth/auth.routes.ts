@@ -1,3 +1,4 @@
+// Auth routes: register, login, refresh, logout, me — with rate limiting on the sensitive ones.
 import { Router } from 'express';
 import { registerSchema, loginSchema } from '@pms/shared';
 import { validate } from '../../middleware/validate.js';
@@ -9,6 +10,7 @@ import {
 } from '../../middleware/rateLimit.js';
 import * as authController from './auth.controller.js';
 
+// Builds and returns the auth router
 export function createAuthRouter(): Router {
   const authRouter = Router();
 

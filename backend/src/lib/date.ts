@@ -1,3 +1,4 @@
+// Timezone-safe date helpers, used so "today" and stored dates agree regardless of server UTC offset.
 import { env } from '../config/env.js';
 
 /** Today's calendar date (YYYY-MM-DD) as observed in APP_TIMEZONE, independent of server UTC offset. */

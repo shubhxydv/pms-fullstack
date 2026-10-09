@@ -1,3 +1,4 @@
+// Admin routes: everything here requires an authenticated ADMIN-role user.
 import { Router } from 'express';
 import { paginationQuerySchema } from '@pms/shared';
 import { validate } from '../../middleware/validate.js';

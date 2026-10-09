@@ -1,3 +1,4 @@
+// Converts page/pageSize into Prisma skip/take, and builds the pagination metadata sent back to clients.
 import type { PaginationMeta } from '@pms/shared';
 
 export interface PageArgs {
@@ -5,10 +6,12 @@ export interface PageArgs {
   take: number;
 }
 
+// Turns page number into Prisma skip/take
 export function toPageArgs(page: number, pageSize: number): PageArgs {
   return { skip: (page - 1) * pageSize, take: pageSize };
 }
 
+// Builds the pagination metadata returned to clients
 export function toPaginationMeta(page: number, pageSize: number, total: number): PaginationMeta {
   return {
     page,

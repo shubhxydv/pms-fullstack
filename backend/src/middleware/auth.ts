@@ -1,3 +1,4 @@
+// Express middleware that checks the JWT access token and loads the authenticated user onto req.user.
 import type { NextFunction, Request, Response } from 'express';
 import type { Role } from '@pms/shared';
 import jwt from 'jsonwebtoken';
@@ -17,6 +18,7 @@ declare module 'express-serve-static-core' {
   }
 }
 
+// Verifies the access token and session
 export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {

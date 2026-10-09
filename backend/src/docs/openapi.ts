@@ -1,3 +1,4 @@
+// Builds the OpenAPI/Swagger document describing every API route, served at /docs.
 import { OpenAPIRegistry, OpenApiGeneratorV3, extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import {
@@ -236,6 +237,7 @@ registry.registerPath({
   responses: { 200: { description: 'OK' }, 401: { description: 'Invalid cron secret' } },
 });
 
+// Generates the final OpenAPI JSON document
 export function buildOpenApiDocument() {
   const generator = new OpenApiGeneratorV3(registry.definitions);
   return generator.generateDocument({

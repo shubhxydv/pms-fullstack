@@ -1,3 +1,4 @@
+// Notification routes: token register/unregister and test push need a user; the due-soon cron needs CRON_SECRET.
 import { Router } from 'express';
 import { registerTokenSchema } from '@pms/shared';
 import { z } from 'zod';

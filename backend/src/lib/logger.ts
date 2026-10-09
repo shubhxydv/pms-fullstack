@@ -1,3 +1,4 @@
+// App-wide structured logger (pino), with secrets like passwords and tokens redacted from logs.
 import pino from 'pino';
 import { env } from '../config/env.js';
 

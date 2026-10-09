@@ -1,3 +1,4 @@
+// Signs and verifies short-lived JWT access tokens used to authenticate API requests.
 import jwt from 'jsonwebtoken';
 import type { Role } from '@pms/shared';
 import { env } from '../config/env.js';
@@ -12,6 +13,7 @@ export interface AccessTokenPayload {
   role: Role;
 }
 
+// Signs a new short-lived access token
 export function signAccessToken(payload: AccessTokenPayload): string {
   return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
     algorithm: 'HS256',
@@ -26,6 +28,7 @@ export interface VerifiedAccessToken extends AccessTokenPayload {
   exp: number;
 }
 
+// Verifies signature, issuer and expiry
 export function verifyAccessToken(token: string): VerifiedAccessToken {
   return jwt.verify(token, env.JWT_ACCESS_SECRET, {
     algorithms: ['HS256'],

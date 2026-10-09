@@ -1,8 +1,10 @@
+// Admin business logic: fetching users and audit logs with pagination, straight from the database.
 import type { ListResponse, PaginationQuery } from '@pms/shared';
 import { prisma } from '../../lib/prisma.js';
 import { toPageArgs, toPaginationMeta } from '../../lib/pagination.js';
 import { toUserDto, type UserDto } from '../../lib/dto.js';
 
+// Fetches a page of all users
 export async function listUsers(query: PaginationQuery): Promise<ListResponse<UserDto>> {
   const [users, total] = await Promise.all([
     prisma.user.findMany({
@@ -30,6 +32,7 @@ export interface AuditLogDto {
   createdAt: string;
 }
 
+// Fetches a page of audit log entries
 export async function listAuditLogs(query: PaginationQuery): Promise<ListResponse<AuditLogDto>> {
   const [logs, total] = await Promise.all([
     prisma.auditLog.findMany({

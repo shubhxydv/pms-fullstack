@@ -1,9 +1,11 @@
+// Push-notification business logic: device token storage, test pushes, and the due-soon reminder job.
 import type { RegisterTokenInput } from '@pms/shared';
 import { prisma } from '../../lib/prisma.js';
 import { todayDateString, dateOnlyToUtcMidnight } from '../../lib/date.js';
 import { sendPushToTokens } from '../../lib/fcm.js';
 import { logger } from '../../lib/logger.js';
 
+// Upserts a device's push token
 export async function registerToken(userId: string, input: RegisterTokenInput): Promise<void> {
   await prisma.pushToken.upsert({
     where: { token: input.token },
@@ -12,10 +14,12 @@ export async function registerToken(userId: string, input: RegisterTokenInput): 
   });
 }
 
+// Deletes a device's push token
 export async function unregisterToken(userId: string, token: string): Promise<void> {
   await prisma.pushToken.deleteMany({ where: { userId, token } });
 }
 
+// Sends a test push to all of a user's devices
 export async function sendTestPush(userId: string): Promise<{ sent: number; total: number }> {
   const tokens = await prisma.pushToken.findMany({ where: { userId }, select: { token: true } });
   const results = await sendPushToTokens(
@@ -30,6 +34,7 @@ export async function sendTestPush(userId: string): Promise<{ sent: number; tota
   return { sent: results.filter((r) => r.success).length, total: results.length };
 }
 
+// Deletes tokens FCM reports as dead
 async function cleanupInvalidTokens(results: { token: string; invalid: boolean }[]): Promise<void> {
   const invalidTokens = results.filter((r) => r.invalid).map((r) => r.token);
   if (invalidTokens.length > 0) {
@@ -42,6 +47,7 @@ async function cleanupInvalidTokens(results: { token: string; invalid: boolean }
  * push sent for that due date, sends one push per owner, and logs the attempt so a
  * second cron run the same day never double-sends.
  */
+// Pushes reminders for tasks due tomorrow
 export async function runDueSoonJob(): Promise<{ checked: number; sent: number }> {
   const tomorrowDate = dateOnlyToUtcMidnight(todayDateString());
   tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);

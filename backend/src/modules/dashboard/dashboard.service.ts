@@ -1,3 +1,4 @@
+// Builds the dashboard summary: project/task counts, overdue tasks, and tasks due soon.
 import { prisma } from '../../lib/prisma.js';
 import { todayDateString, dateOnlyToUtcMidnight } from '../../lib/date.js';
 
@@ -20,6 +21,7 @@ export interface DashboardSummary {
   dueSoon: DueSoonTask[];
 }
 
+// Aggregates counts and due-soon tasks
 export async function getDashboard(ownerId: string): Promise<DashboardSummary> {
   const today = dateOnlyToUtcMidnight(todayDateString());
 

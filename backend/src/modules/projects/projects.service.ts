@@ -1,3 +1,4 @@
+// Project business logic: ownership-scoped CRUD, search/filter/sort/pagination, and audit logging.
 import type { CreateProjectInput, ProjectQuery, UpdateProjectInput, ListResponse } from '@pms/shared';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
@@ -22,10 +23,12 @@ export interface ProjectDto {
   completedCount: number;
 }
 
+// Formats a Date as YYYY-MM-DD
 function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+// Throws 404 unless the project belongs to this owner
 async function assertOwned(ownerId: string, projectId: string) {
   const project = await prisma.project.findFirst({ where: { id: projectId, ownerId } });
   if (!project) {
@@ -34,6 +37,7 @@ async function assertOwned(ownerId: string, projectId: string) {
   return project;
 }
 
+// Lists projects with search, filter, sort, paging
 export async function listProjects(ownerId: string, query: ProjectQuery): Promise<ListResponse<ProjectDto>> {
   const where: Prisma.ProjectWhereInput = {
     ownerId,
@@ -84,6 +88,7 @@ export async function listProjects(ownerId: string, query: ProjectQuery): Promis
   return { data, meta: toPaginationMeta(query.page, query.pageSize, total) };
 }
 
+// Fetches one project with task counts
 export async function getProject(ownerId: string, projectId: string): Promise<ProjectDto> {
   const project = await prisma.project.findFirst({
     where: { id: projectId, ownerId },
@@ -109,6 +114,7 @@ export async function getProject(ownerId: string, projectId: string): Promise<Pr
   };
 }
 
+// Creates a project and records the audit entry
 export async function createProject(
   ownerId: string,
   input: CreateProjectInput,
@@ -134,6 +140,7 @@ export async function createProject(
   return getProject(ownerId, project.id);
 }
 
+// Updates a project after validating date range
 export async function updateProject(
   ownerId: string,
   projectId: string,
@@ -172,6 +179,7 @@ export async function updateProject(
   return getProject(ownerId, projectId);
 }
 
+// Deletes a project after checking ownership
 export async function deleteProject(
   ownerId: string,
   projectId: string,

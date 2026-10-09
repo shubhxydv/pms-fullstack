@@ -1,3 +1,4 @@
+// Firebase Cloud Messaging wrapper: lazily initializes Firebase and sends push notifications.
 import { existsSync, readFileSync } from 'node:fs';
 import { initializeApp, cert, getApps, type App } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
@@ -7,6 +8,7 @@ import { logger } from './logger.js';
 let app: App | null = null;
 let warnedOnce = false;
 
+// Reads Firebase service-account credentials from env/file
 function loadServiceAccount(): Record<string, unknown> | null {
   if (env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     return JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON) as Record<string, unknown>;
@@ -20,6 +22,7 @@ function loadServiceAccount(): Record<string, unknown> | null {
   return null;
 }
 
+// Lazily initializes (or reuses) the Firebase app
 function getFirebaseApp(): App | null {
   if (app) return app;
   if (getApps().length > 0) {

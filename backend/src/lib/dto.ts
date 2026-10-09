@@ -1,3 +1,4 @@
+// Converts the Prisma User model into the safe shape sent to clients (no password hash).
 import type { User } from '@prisma/client';
 
 export interface UserDto {
@@ -8,6 +9,7 @@ export interface UserDto {
   createdAt: string;
 }
 
+// Strips sensitive fields before sending user
 export function toUserDto(user: User): UserDto {
   return {
     id: user.id,

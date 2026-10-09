@@ -1,3 +1,4 @@
+// Task routes: all require auth; body/query/params are validated before hitting the controller.
 import { Router } from 'express';
 import { createTaskSchema, idParamSchema, taskQuerySchema, updateTaskSchema } from '@pms/shared';
 import { validate } from '../../middleware/validate.js';

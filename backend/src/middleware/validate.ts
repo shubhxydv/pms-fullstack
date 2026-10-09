@@ -1,3 +1,4 @@
+// Middleware factory that validates/parses req.body, req.query, req.params against Zod schemas.
 import type { NextFunction, Request, Response } from 'express';
 import type { ZodType } from 'zod';
 
@@ -7,6 +8,7 @@ interface ValidateSchemas {
   params?: ZodType;
 }
 
+// Builds middleware that parses body/query/params
 export function validate(schemas: ValidateSchemas) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (schemas.body) {

@@ -1,3 +1,4 @@
+// Auth business logic: register, login, refresh-token rotation with reuse detection, and logout.
 import type { RegisterInput, LoginInput } from '@pms/shared';
 import { prisma } from '../../lib/prisma.js';
 import { hashPassword, verifyPassword, verifyAgainstDummyHash } from '../../lib/password.js';
@@ -23,6 +24,7 @@ export interface AuthResult {
   refreshToken: string;
 }
 
+// Creates a session row and token pair
 async function createSession(userId: string, role: UserDto['role'], familyId: string, meta: SessionMeta) {
   const refreshToken = generateOpaqueToken();
   const session = await prisma.session.create({
@@ -39,6 +41,7 @@ async function createSession(userId: string, role: UserDto['role'], familyId: st
   return { accessToken, refreshToken };
 }
 
+// Creates a new user account and session
 export async function register(input: RegisterInput, meta: SessionMeta): Promise<AuthResult> {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) {
@@ -61,6 +64,7 @@ export async function register(input: RegisterInput, meta: SessionMeta): Promise
   return { user: toUserDto(user), accessToken, refreshToken };
 }
 
+// Verifies credentials and starts a session
 export async function login(input: LoginInput, meta: SessionMeta): Promise<AuthResult> {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
 
@@ -98,6 +102,7 @@ export async function login(input: LoginInput, meta: SessionMeta): Promise<AuthR
   return { user: toUserDto(user), accessToken, refreshToken };
 }
 
+// Rotates the refresh token atomically
 export async function refresh(rawToken: string, meta: SessionMeta): Promise<AuthResult> {
   const tokenHash = hashToken(rawToken);
   const session = await prisma.session.findUnique({
@@ -153,6 +158,7 @@ export async function refresh(rawToken: string, meta: SessionMeta): Promise<Auth
   return { user: toUserDto(session.user), accessToken, refreshToken: newRefreshToken };
 }
 
+// Revokes a session on logout
 export async function logout(userId: string, sessionId: string, meta: SessionMeta = {}): Promise<void> {
   await prisma.session.update({
     where: { id: sessionId },
@@ -167,6 +173,7 @@ export async function logout(userId: string, sessionId: string, meta: SessionMet
   });
 }
 
+// Looks up the current user by id
 export async function getMe(userId: string): Promise<UserDto> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {

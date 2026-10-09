@@ -1,3 +1,4 @@
+// Loads and validates required environment variables once at startup, so bad config fails fast.
 import { existsSync } from 'node:fs';
 import { z } from 'zod';
 

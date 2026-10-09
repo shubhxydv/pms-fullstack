@@ -1,3 +1,4 @@
+// Express error-handling middleware: the last stop for every error, turning it into a JSON response.
 import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { AppError } from '../lib/errors.js';
@@ -10,6 +11,7 @@ function bodyParserErrorType(err: unknown): string | undefined {
   return undefined;
 }
 
+// Maps any thrown error to a JSON response
 export function errorHandler(
   err: unknown,
   req: Request,

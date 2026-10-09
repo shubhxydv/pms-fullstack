@@ -1,3 +1,4 @@
+// Defines AppError, the one error type route handlers throw, plus its HTTP-status mapping and factory helpers.
 import type { ErrorCode, ErrorDetail } from '@pms/shared';
 
 const STATUS_BY_CODE: Record<ErrorCode, number> = {

@@ -1,3 +1,4 @@
+// Builds the Express app: security/CORS middleware, health checks, API docs, and all routers.
 import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -18,6 +19,7 @@ import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
 import { notificationsRouter } from './modules/notifications/notifications.routes.js';
 
+// Assembles and returns the configured Express app
 export function createApp(): Express {
   const app = express();
 
