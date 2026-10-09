@@ -1,10 +1,12 @@
 # PMS — Project Management System
 
-A full-stack project/task management system: REST API, a React web app, and a React Native mobile app, sharing one Postgres database and one set of validation rules.
+A simple project & task manager, built three times over: as a REST API, a React website, and a React Native mobile app. All three talk to the same backend and database, and share one set of validation rules, so nothing gets out of sync between platforms.
+
+In plain words: a user can sign up, log in, create projects, add tasks to those projects, mark them done, and get a notification on their phone the day before a task is due. Admins get an extra screen to see every user and everything that happened (an audit log).
 
 **Live:**
 - Web app: https://pms-fullstack-six.vercel.app
-- API: https://pms-backend-qiir.onrender.com (first request may take ~50s — see [Gotchas](#gotchas))
+- API: https://pms-backend-qiir.onrender.com (first request may take ~50s — the free hosting tier "sleeps" when idle, see [Gotchas](#gotchas))
 - API docs (Swagger UI): https://pms-backend-qiir.onrender.com/docs
 - Mobile: Android APK — see [Mobile](#8-mobile-app) below; iOS via Expo Go
 
@@ -17,7 +19,7 @@ A full-stack project/task management system: REST API, a React web app, and a Re
 
 ---
 
-## 1. Architecture
+## 1. How it's put together
 
 ```mermaid
 flowchart LR
@@ -39,92 +41,100 @@ flowchart LR
     GHA -- "keep-alive ping" --> API
 ```
 
-Both clients talk to the same API over HTTPS and share one `@pms/shared` Zod package for request/response validation, so a rule never drifts between platforms. The web app proxies `/api/*` through Vercel to Render same-origin (no CORS needed from the browser); the mobile app calls the API directly.
+In plain words: the web app and the mobile app are just two different "front doors" — neither one talks to the database directly. They both send normal HTTPS requests to one Express API, which is the only thing that touches Postgres. That's why a task created on the phone shows up instantly on the website too — there's only one source of truth.
 
-## 2. Tech stack and why
+The web app routes its `/api/*` calls through Vercel to Render so the browser never has to deal with cross-origin requests. The mobile app just calls the API's URL directly, since there's no browser same-origin rule to work around on a phone.
 
-| Layer | Choice | Why |
+One extra piece: a `@pms/shared` package holds every validation rule (e.g. "a task name can't be empty", "priority must be LOW/MEDIUM/HIGH") as Zod schemas. All three codebases import the *same* file, so the web form, the mobile form, and the API's own request validation can never quietly drift apart.
+
+## 2. What I used, and why (in plain terms)
+
+| Layer | Choice | Why I picked it |
 |---|---|---|
-| API | Express 5 + TypeScript | Mature, explicit middleware pipeline; Express 5's native async-error handling removes the need for wrapper boilerplate |
-| ORM | Prisma 6 | Type-safe queries, migrations, and a schema that doubles as documentation |
-| DB | PostgreSQL (Neon, serverless) | Relational data (users/projects/tasks) with real foreign keys; Neon gives branchable, pooled Postgres with no server to manage |
-| Validation | Zod, in a shared `@pms/shared` workspace | One schema defines a form's client-side validation, the API's request validation, and the TypeScript type — used identically by web, mobile, and the backend |
-| Web | React 19 + Vite + Tailwind v4 | Fast dev loop, no server-rendering complexity needed for an authenticated dashboard app |
-| Mobile | Expo (React Native) + Expo Router | File-based routing, managed native builds (no manually maintained Xcode/Gradle projects), EAS for cloud Android builds |
-| Data fetching | TanStack Query (both clients) | Cache, retry, and refetch-on-focus/pull-to-refresh behavior without hand-rolled state machines |
-| Auth | JWT access token (15 min) + rotating, hashed, reuse-detected refresh tokens | Short-lived access tokens limit exposure; refresh-token rotation with family revocation detects and kills a stolen-token session automatically |
-| Push | Firebase Cloud Messaging (FCM v1), direct from the backend via `firebase-admin` | No vendor relay in the delivery path; one Firebase project, one service-account key |
-| CI/CD | GitHub Actions → Render (API, Docker) + Vercel (web) auto-deploy on push; EAS for Android builds | Every push to `main` is live within minutes; a scheduled Action also triggers the daily due-soon push job and pings the API to avoid Render's free-tier cold start |
+| API | Express 5 + TypeScript | A simple, well-understood way to define routes; TypeScript catches mistakes before runtime |
+| ORM | Prisma | Lets me write database queries as normal JS/TS instead of raw SQL, and its schema file doubles as documentation of the whole data model |
+| Database | PostgreSQL (hosted on Neon) | A real relational database — projects and tasks naturally have foreign-key relationships, so SQL fits better than a document store |
+| Validation | Zod, in one shared package | Write a rule once, use it in three places (web form, mobile form, API) — so they're always in sync |
+| Web | React 19 + Vite + Tailwind | Fast to build with, no server-rendering complexity needed since every page is behind a login |
+| Mobile | Expo (React Native) | One codebase for both Android and iOS, and I don't have to hand-maintain native Xcode/Gradle projects |
+| Data fetching | TanStack Query (web + mobile) | Handles caching, retrying, and "refresh when the user comes back to this screen" automatically, instead of writing that logic by hand |
+| Auth | Short-lived JWT + rotating refresh tokens | Explained in plain words in [§9 Security](#9-security-design) below |
+| Push notifications | Firebase Cloud Messaging | The standard, free way to push a notification to an Android/iOS device |
+| CI/CD | GitHub Actions → auto-deploy to Render + Vercel | Every push to `main` goes live in a few minutes, without me doing it by hand |
 
-## 3. Quick start
+## 3. Running it yourself
 
-### Docker (fastest — full stack except mobile)
+### Fastest way (Docker — everything except mobile)
 
 ```bash
 docker compose up --build
 ```
 
-Brings up Postgres, runs migrations, and starts the API on `:4000`. Then, separately:
+This starts Postgres, runs the database migrations, and starts the API on port `4000`. Then, in a separate terminal:
 
 ```bash
 npm install
-npm run dev:web      # web app on :5173, proxies /api to :4000 in dev
+npm run dev:web      # web app on :5173, talks to the API on :4000
 ```
 
-### Manual (all four workspaces)
+### Doing it by hand (all four parts)
 
 ```bash
-npm install                                   # installs all workspaces
-cp backend/.env.example backend/.env          # fill in secrets, see §5
-docker compose -f docker-compose.dev.yml up -d  # Postgres only, for local dev
+npm install                                   # installs everything, all 4 workspaces
+cp backend/.env.example backend/.env          # fill in the secrets, see §5 below
+docker compose -f docker-compose.dev.yml up -d  # just Postgres, for local dev
 npm run build -w shared
 npm run prisma:deploy -w backend
 npm run prisma:seed -w backend
 npm run dev -w backend       # API on :4000
 npm run dev -w web           # web app on :5173
-npm run start -w mobile      # Expo dev server; press a for Android emulator
+npm run start -w mobile      # Expo dev server; press "a" for the Android emulator
 ```
 
-## 4. Repo layout
+## 4. Where everything lives
 
 ```
-shared/    @pms/shared — Zod schemas + inferred types, imported by backend, web, and mobile
-backend/   Express API (routes → controller → service → Prisma), tests, Dockerfile
-web/       React + Vite SPA
-mobile/    Expo Router app (Android + iOS)
-docs/      openapi.json (exported API spec), er-diagram.png
+shared/    One package of validation rules (Zod schemas), used by all three apps below
+backend/   The Express API — routes → controller → service → Prisma → database
+web/       The React website
+mobile/    The Expo (React Native) app, for Android and iOS
+docs/      Exported API spec (openapi.json) and a picture of the database diagram
 ```
+
+Inside `backend/`, a request flows in one direction: **route** (just wiring) → **controller** (reads the request, calls the service, sends the response) → **service** (the actual business logic) → **Prisma** (talks to Postgres). That split makes it easy to find where any given rule lives — if it's "what happens when a task is created," it's in `tasks.service.ts`, not scattered across the route file.
 
 ## 5. Environment variables
 
 ### `backend/.env`
-| Variable | Required | Notes |
+| Variable | Required? | What it's for |
 |---|---|---|
-| `DATABASE_URL` | yes | Pooled connection string (Neon pooler in prod, direct in local Docker) |
-| `DIRECT_URL` | yes | Non-pooled connection, used for migrations |
-| `JWT_ACCESS_SECRET` | yes | `openssl rand -hex 32`, min 32 chars |
-| `CORS_ORIGINS` | yes | Comma-separated allow-list |
-| `CRON_SECRET` | yes | `openssl rand -hex 16`; bearer token the scheduled job trigger must present |
-| `APP_TIMEZONE` | no (default `Asia/Kolkata`) | Used to compute "today"/"tomorrow" for due-date logic independent of server UTC |
-| `LOG_LEVEL` | no (default `info`) | pino log level |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | no | Production: paste the FCM service-account key JSON as one line |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | no (default `./secrets/firebase-service-account.json`) | Local dev: drop the downloaded key file here instead (gitignored) |
+| `DATABASE_URL` | yes | Connection string the app uses for normal queries |
+| `DIRECT_URL` | yes | A non-pooled connection, only used when running migrations |
+| `JWT_ACCESS_SECRET` | yes | The secret key used to sign login tokens (`openssl rand -hex 32`) |
+| `CORS_ORIGINS` | yes | Which websites are allowed to call this API from a browser |
+| `CRON_SECRET` | yes | A password the daily notification job must present, so no one else can trigger it |
+| `APP_TIMEZONE` | no (default `Asia/Kolkata`) | Which timezone counts as "today" when deciding if a task is due soon |
+| `LOG_LEVEL` | no (default `info`) | How chatty the server logs are |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | no | The Firebase key, for sending push notifications in production |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | no | Same key, but as a local file path, for local dev |
 
-Push notifications no-op with a warning (not a crash) when neither Firebase variable resolves to a real key — dev and CI never need Firebase configured.
+If the Firebase key isn't set, push notifications just quietly skip themselves (log a warning) instead of crashing — so you don't need Firebase configured just to run the app locally.
 
-### `web/.env` (optional — only for pointing at a non-default API in dev)
-Vite proxies `/api` to `http://localhost:4000` in dev automatically; in production the Vercel rewrite in `vercel.json` points at Render.
+### `web/.env`
+Not needed normally — in dev, Vite automatically forwards `/api` calls to `localhost:4000`.
 
 ### `mobile/.env`
-| Variable | Required | Notes |
+| Variable | Required? | What it's for |
 |---|---|---|
-| `EXPO_PUBLIC_API_URL` | no (defaults to the deployed Render API) | Override for local backend: `http://10.0.2.2:4000/api` on the Android emulator, or `expo start --tunnel` + that URL on a physical device |
+| `EXPO_PUBLIC_API_URL` | no (defaults to the live Render API) | Point the app at a local backend instead — `http://10.0.2.2:4000/api` on the Android emulator |
 
-## 6. Database
+## 6. The database, in plain terms
+
+There are 6 tables. A **User** owns **Projects**, a **Project** contains **Tasks**. A **Session** is one refresh-token record (used for login). A **PushToken** is a phone's device ID for sending it notifications. An **AuditLog** row is written every time something important happens (login, task created, etc.) and a **NotificationLog** row exists just to make sure the same "task due tomorrow" push is never sent twice.
 
 ```bash
 npm run prisma:deploy -w backend   # apply migrations
-npm run prisma:seed -w backend     # alice/bob/admin + sample projects and tasks
+npm run prisma:seed -w backend     # creates alice/bob/admin + sample projects and tasks
 ```
 
 ```mermaid
@@ -188,74 +198,76 @@ erDiagram
     }
 ```
 
-A rendered PNG of this diagram is in `docs/er-diagram.png`.
+A picture of this same diagram is saved at `docs/er-diagram.png`.
 
-## 7. API documentation
+## 7. The API, in short
 
-Interactive Swagger UI: https://pms-backend-qiir.onrender.com/docs (also served locally at `/docs`). Raw spec exported to `docs/openapi.json` via `npm run docs:export -w backend`.
+Full interactive docs: https://pms-backend-qiir.onrender.com/docs (same thing locally at `/docs`). The raw spec is also exported to `docs/openapi.json`.
 
-All endpoints are under `/api`, require `Authorization: Bearer <accessToken>` except `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, and the cron trigger (which instead requires `Authorization: Bearer <CRON_SECRET>`). Errors share one shape:
+Every route needs `Authorization: Bearer <accessToken>` *except* register, login, refresh, and the cron trigger (which needs a different secret instead). Every error comes back in the same shape, so the frontend only has to handle one format:
 
 ```json
 { "error": { "code": "VALIDATION_ERROR", "message": "...", "details": [{ "path": "email", "message": "..." }] } }
 ```
 
-| Module | Endpoints |
+| Module | What it does |
 |---|---|
-| Auth | register, login, refresh (rotates the refresh token), logout, `GET /me` |
-| Projects | full CRUD, search by name, filter by status, sort, pagination |
-| Tasks | full CRUD, search, filter by status/priority, sort, pagination |
-| Dashboard | per-user summary counts (totals, completed/pending, overdue, due-soon) |
-| Admin (RBAC) | list users, list audit logs — `ADMIN` role only |
-| Notifications | register/unregister a device push token, send a test push, the due-soon cron trigger |
+| Auth | register, login, refresh (rotates the refresh token), logout, "who am I" |
+| Projects | create/read/update/delete, search by name, filter by status, sort, pagination |
+| Tasks | create/read/update/delete, search, filter by status/priority, sort, pagination |
+| Dashboard | a quick summary: how many tasks total, done, pending, overdue, due soon |
+| Admin | list all users, view the audit log — only works if your account's role is ADMIN |
+| Notifications | register/remove a phone for push notifications, send a test push, the daily due-soon job |
 
 ## 8. Mobile app
 
-### Against the deployed backend (default)
-The APK and Expo Go both point at `https://pms-backend-qiir.onrender.com/api` out of the box — no setup needed.
+### Using the live backend (default — no setup)
+Both the APK and Expo Go already point at the deployed API, so there's nothing to configure.
 
-**Install the APK:** built locally via Gradle (`mobile/android/app/build/outputs/apk/release/app-release.apk`, ~105MB, universal/all-ABIs) — not checked into git (`*.apk` is gitignored; it's a build artifact, not source). To install it on a phone:
-- **USB**: enable Developer Options → USB debugging on the phone, connect it, then `adb install app-release.apk` from `mobile/android/app/build/outputs/apk/release/`.
-- **Wi-Fi**: with the phone on the same network as the build machine, serve the file (`python -m http.server 8765` from that folder) and open `http://<build-machine-LAN-IP>:8765/app-release.apk` in the phone's browser to download and install (allow "install from unknown sources" when prompted).
+**Installing the APK:** built locally with Gradle (`mobile/android/app/build/outputs/apk/release/app-release.apk`, about 105MB) — it's not checked into git, since it's a build output, not source code.
+- **USB**: turn on Developer Options → USB debugging on the phone, plug it in, then run `adb install app-release.apk` from that folder.
+- **Wi-Fi**: with the phone on the same network, run `python -m http.server 8765` in that folder and open `http://<your-computer's-LAN-IP>:8765/app-release.apk` on the phone to download and install it (you'll need to allow "install from unknown sources").
 
-A cloud-built APK via `eas build --platform android --profile preview` was also started (see PROGRESS.md) as a backup, since EAS's free-tier build queue can take hours; it produces a shareable Expo-hosted download link once it clears the queue.
+**Expo Go** (the quickest way to try it, and it also works on iOS): run `cd mobile && npx expo start`, then scan the QR code with the Expo Go app. It talks straight to the live API, so there's no extra network setup needed.
 
-**Expo Go** (fastest way to try it, works on iOS too): `cd mobile && npx expo start`, then scan the QR code. On a physical device, Expo Go talks directly to the deployed API, so no tunnel/network setup is required — if you'd rather point at a local backend, use `expo start --tunnel` instead.
+### Pointing it at your own local backend instead
+- Android emulator: set `EXPO_PUBLIC_API_URL=http://10.0.2.2:4000/api` in `mobile/.env`.
+- Physical device: run `expo start --tunnel` and use the tunnel URL it gives you.
 
-### Against a local backend
-- Android **emulator**: set `EXPO_PUBLIC_API_URL=http://10.0.2.2:4000/api` in `mobile/.env` (`10.0.2.2` is the emulator's alias for the host machine's `localhost`).
-- Physical device: `expo start --tunnel` and use the tunnel URL, or stay on the deployed API.
+### Why there's no iOS build to install directly
+Building an installable `.ipa` outside of Apple's TestFlight/App Store needs a paid Apple Developer account, which was out of scope here. Expo Go covers iOS just fine for demo purposes and behaves identically to the Android build.
 
-### iOS
-There is no standalone installable iOS build in this submission — producing a `.ipa` outside TestFlight/App Store requires a paid Apple Developer account, which is out of scope here. Expo Go is the verified cross-platform path and behaves identically to the Android dev build.
+## 9. Security design (explained simply)
 
-## 9. Security design
+- **Passwords** are never stored as plain text — they're hashed with bcrypt, and the logger is configured to never even print a password or token to the console.
+- **Login tokens** (JWTs) expire after 15 minutes. Short-lived on purpose: if one ever leaked, it's only useful for a few minutes.
+- **Refresh tokens** are what let you stay logged in without re-entering your password every 15 minutes. Each one is a random value; the server only ever stores its hash, never the real value. Every time it's used, it's swapped out for a brand new one ("rotated"). If someone ever tries to reuse an *old* one — which should never happen in normal use — that's treated as a sign of theft, and every session in that login's whole chain gets logged out at once.
+- **Where tokens are stored:** on the web, the access token lives only in memory (gone if you refresh the page, and not something a browser extension can quietly read off disk); the refresh token sits in an httpOnly cookie, which JavaScript can never read at all. On mobile, both tokens go into the phone's secure storage (the same encrypted vault iOS/Android use for other apps' secrets).
+- **Authorization:** every single database query is automatically scoped to "the thing that belongs to the currently logged-in user." There's no endpoint where you can just plug in someone else's ID and see their data — not even for an admin account, who gets their own separate `/admin` routes instead of wider access to the normal ones.
+- **Input validation:** every request is checked against the same rules the frontend form used, again on the server, before anything touches the database.
+- **Rate limiting:** login and register are limited more strictly than everything else, to slow down brute-force guessing.
+- **CORS:** only a specific, named list of websites is allowed to call the API from a browser — not "anyone."
+- **Secrets never get committed:** `.env` files and the Firebase key are all excluded from git.
+- **Audit log:** every login, and every project/task change, is recorded with who did it, what they did, and from where — viewable by admins.
 
-- **Passwords**: bcrypt-hashed, never logged (pino redaction list includes `password`, `passwordHash`, `token`, `accessToken`, `refreshToken`).
-- **Access tokens**: JWT, HS256, 15-minute expiry.
-- **Refresh tokens**: opaque random values, stored server-side only as a SHA-256 hash (never the raw token), rotated on every use. Each belongs to a *family*; reusing an already-rotated token revokes the entire family — a stolen-and-later-used refresh token kills every session descended from it, not just the one request.
-- **Token storage**: web keeps the access token in a JS variable only (gone on reload, not readable by storage-targeting browser extensions) and the refresh token in an httpOnly cookie (never touches client JS). Mobile has no httpOnly-cookie equivalent, so both tokens live in `expo-secure-store` (iOS Keychain / Android Keystore).
-- **Authorization**: every query is scoped by the authenticated user's id at the Prisma level (`WHERE ownerId = req.user.id`, etc.) — there is no endpoint that accepts a raw resource id without that scope, so one user can never read or mutate another user's data, admin included. A dedicated test proves an ADMIN promoted via SQL still gets 404 on another user's project through the normal `/api/projects/:id` route; admin-only data access is a *separate* `/admin/*` route namespace that only ever queries `User`/`AuditLog`.
-- **Validation**: every request body/query/params is validated against the same Zod schema the client used to build the request, server-side, before touching the database.
-- **Rate limiting**: a stricter limiter on `/api/auth/login` and `/api/auth/register`; a global limiter on everything else.
-- **CORS**: exact-origin allow-list (`CORS_ORIGINS`), not `*`.
-- **Secrets**: `.env*` (except `.env.example`) and `backend/secrets/` are gitignored; the Firebase service-account key never enters source control.
-- **Audit log**: every auth event and every project/task create/update/delete is recorded with actor, action, entity, and IP; visible to admins at `/admin`.
+## 10. Extra things built beyond the minimum ask
 
-## 10. Bonus features implemented
+Refresh-token rotation with theft detection · pagination & sorting on every list · automated tests (backend unit + integration, web component tests) · Docker setup for the whole stack · an audit log with an admin screen to view it · role-based access (USER/ADMIN) · one shared validation package instead of three separate copies · CI that auto-deploys on every push · offline viewing on mobile (cached data still shows with no internet, plus an "offline" banner) · push notifications the day before a task is due.
 
-Refresh-token rotation with reuse detection · pagination + sorting on every list endpoint · unit + integration tests (backend) and component tests (web) · Docker (API + full-stack compose) · audit logs with an admin viewer · RBAC (`USER`/`ADMIN`) · one shared Zod validation package across all three codebases · CI (GitHub Actions) with auto-deploy to Render/Vercel on push, plus a manual EAS workflow for Android builds · offline viewing on mobile (persisted query cache + NetInfo-driven offline banner) · push notifications for tasks due tomorrow (FCM v1, deduped via `notification_log`, triggered by a scheduled GitHub Action).
+**Being upfront about limits:** there's no standalone iOS install (see §8) — Expo Go covers it instead. And mobile's offline mode is read-only: you can still see your tasks with no signal, but actions taken while offline are blocked with a clear message rather than being queued and silently retried later.
 
-**Honest limits**: no standalone iOS build (see §8); mobile's offline support is read-only — cached data renders while offline, but there's no write queue for actions taken while disconnected (they're blocked with a clear message instead of silently queued, to avoid presenting fake success).
-
-## 11. Testing and CI
+## 11. Tests and CI
 
 ```bash
-npm run test -w backend    # Vitest + Supertest, real Postgres test DB
-npm run test -w web        # Vitest + Testing Library
-npm run test -w mobile     # Jest (jest-expo preset)
-npm run typecheck --ws     # tsc --noEmit, every workspace
-npm run lint                # eslint, repo-wide
+npm run test -w backend    # backend tests, against a real test database
+npm run test -w web        # web component tests
+npm run test -w mobile     # mobile tests
+npm run typecheck --ws     # type-checks every workspace
+npm run lint                # lint, repo-wide
 ```
 
-CI (`.github/workflows/ci.yml`) runs typecheck, lint, and the full backend test suite (with a real Postgres service container) on every push and PR. `keep-alive.yml` pings `/health` every 5 minutes so the Render free-tier instance doesn't cold-start before a review. `due-soon-notifications.yml` triggers the push job daily.
+Every push and every PR automatically runs type-checking, linting, and the full backend test suite (against a real Postgres instance, not a mock) via GitHub Actions. A separate scheduled job pings the API every 5 minutes so it doesn't "fall asleep" on the free hosting tier, and another one triggers the daily due-soon push job.
+
+## Gotchas
+
+- **First request after a while feels slow (~50s):** the free Render tier spins the server down when nobody's used it; the very next request wakes it back up. The keep-alive Action above is there specifically to minimize this during a review window — if you still hit it, it just means it's been idle longer than 5 minutes.
