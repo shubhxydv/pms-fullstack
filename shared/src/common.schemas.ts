@@ -1,3 +1,4 @@
+// Cross-cutting schemas and types: dates, pagination, and the error shape every API response uses.
 import { z } from 'zod';
 import { sortOrderSchema } from './enums.js';
 
@@ -11,9 +12,11 @@ export const dateStringSchema = z
     return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
   }, 'Date must be a valid calendar date');
 
+// Validates a route param is a UUID
 export const idParamSchema = z.object({ id: z.string().uuid() }).strict();
 export type IdParam = z.infer<typeof idParamSchema>;
 
+// Page number + page size for list endpoints
 export const paginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
@@ -21,6 +24,7 @@ export const paginationQuerySchema = z.object({
 
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 
+// Pagination info returned alongside list results
 export interface PaginationMeta {
   page: number;
   pageSize: number;
@@ -28,11 +32,13 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+// Generic shape for any paginated list response
 export interface ListResponse<T> {
   data: T[];
   meta: PaginationMeta;
 }
 
+// All API error codes the backend can return
 export const errorCodeSchema = z.enum([
   'VALIDATION_ERROR',
   'UNAUTHENTICATED',
@@ -46,11 +52,13 @@ export const errorCodeSchema = z.enum([
 ]);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;
 
+// One field-level validation failure
 export interface ErrorDetail {
   path: string;
   message: string;
 }
 
+// Standard JSON shape for every error response
 export interface ErrorEnvelope {
   error: {
     code: ErrorCode;

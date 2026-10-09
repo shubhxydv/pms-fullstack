@@ -1,3 +1,4 @@
+// Validation rules for creating, updating, and listing tasks.
 import { z } from 'zod';
 import { taskPrioritySchema, taskStatusSchema, sortOrderSchema } from './enums.js';
 import { dateStringSchema, paginationQuerySchema } from './common.schemas.js';
@@ -6,6 +7,7 @@ const nameSchema = z.string().trim().min(1, 'Name is required').max(200);
 const descriptionSchema = z.string().trim().max(2000).optional();
 const uuidSchema = z.string().uuid();
 
+// Shape of a create-task request
 export const createTaskSchema = z
   .object({
     projectId: uuidSchema,
@@ -18,6 +20,7 @@ export const createTaskSchema = z
   .strict();
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
+// Shape of a partial-update task request
 export const updateTaskSchema = z
   .object({
     name: nameSchema.optional(),
@@ -30,6 +33,7 @@ export const updateTaskSchema = z
   .refine((val) => Object.keys(val).length > 0, 'At least one field must be provided');
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 
+// Query params for filtering/sorting/paging the task list
 export const taskQuerySchema = paginationQuerySchema
   .extend({
     projectId: uuidSchema.optional(),

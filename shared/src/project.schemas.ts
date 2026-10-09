@@ -1,3 +1,4 @@
+// Validation rules for creating, updating, and listing projects.
 import { z } from 'zod';
 import { projectStatusSchema, sortOrderSchema } from './enums.js';
 import { dateStringSchema, paginationQuerySchema } from './common.schemas.js';
@@ -5,6 +6,7 @@ import { dateStringSchema, paginationQuerySchema } from './common.schemas.js';
 const nameSchema = z.string().trim().min(1, 'Name is required').max(200);
 const descriptionSchema = z.string().trim().max(2000).optional();
 
+// Shape of a create-project request
 export const createProjectSchema = z
   .object({
     name: nameSchema,
@@ -20,6 +22,7 @@ export const createProjectSchema = z
   });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
+// Shape of a partial-update project request
 export const updateProjectSchema = z
   .object({
     name: nameSchema.optional(),
@@ -36,6 +39,7 @@ export const updateProjectSchema = z
   );
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
+// Query params for filtering/sorting/paging the project list
 export const projectQuerySchema = paginationQuerySchema
   .extend({
     q: z.string().trim().max(200).optional(),

@@ -1,3 +1,4 @@
+// Single entry point re-exporting every shared schema, type, and enum.
 export * from './enums.js';
 export * from './common.schemas.js';
 export * from './auth.schemas.js';

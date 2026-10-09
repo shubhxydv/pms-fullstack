@@ -1,8 +1,11 @@
+// Validation rules for register/login request bodies.
 import { z } from 'zod';
 import { clientTypeSchema } from './enums.js';
 
+// UTF-8 byte count, since bcrypt caps input at 72 bytes
 const byteLength = (val: string): number => new TextEncoder().encode(val).length;
 
+// Normalizes and validates an email address
 export const emailSchema = z
   .string()
   .trim()
@@ -10,6 +13,7 @@ export const emailSchema = z
   .min(1, 'Email is required')
   .email('Enter a valid email address');
 
+// Enforces password length and complexity
 export const passwordSchema = z
   .string()
   .min(1, 'Password is required')
@@ -20,6 +24,7 @@ export const passwordSchema = z
 
 export const fullNameSchema = z.string().trim().min(1, 'Full name is required').max(120);
 
+// Shape of a signup request
 export const registerSchema = z
   .object({
     fullName: fullNameSchema,
@@ -29,6 +34,7 @@ export const registerSchema = z
   .strict();
 export type RegisterInput = z.infer<typeof registerSchema>;
 
+// Shape of a login request
 export const loginSchema = z
   .object({
     email: emailSchema,
