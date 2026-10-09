@@ -8,6 +8,7 @@ const STATUS_BY_CODE: Record<ErrorCode, number> = {
   NOT_FOUND: 404,
   CONFLICT: 409,
   RATE_LIMITED: 429,
+  PAYLOAD_TOO_LARGE: 413,
   INTERNAL: 500,
 };
 
@@ -50,6 +51,10 @@ export class AppError extends Error {
 
   static rateLimited(message = 'Too many requests'): AppError {
     return new AppError('RATE_LIMITED', message);
+  }
+
+  static payloadTooLarge(message = 'Request body is too large'): AppError {
+    return new AppError('PAYLOAD_TOO_LARGE', message);
   }
 
   static internal(message = 'Internal server error'): AppError {

@@ -2,6 +2,14 @@ import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { AppError } from '../lib/errors.js';
 
+/** body-parser sets `.type` on malformed-body / oversized-body errors; it isn't a dedicated class. */
+function bodyParserErrorType(err: unknown): string | undefined {
+  if (err && typeof err === 'object' && 'type' in err && typeof err.type === 'string') {
+    return err.type;
+  }
+  return undefined;
+}
+
 export function errorHandler(
   err: unknown,
   req: Request,
@@ -12,6 +20,20 @@ export function errorHandler(
     res
       .status(err.status)
       .json({ error: { code: err.code, message: err.message, details: err.details } });
+    return;
+  }
+
+  const bodyErrorType = bodyParserErrorType(err);
+  if (bodyErrorType === 'entity.parse.failed') {
+    res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Request body is not valid JSON' },
+    });
+    return;
+  }
+  if (bodyErrorType === 'entity.too.large') {
+    res.status(413).json({
+      error: { code: 'PAYLOAD_TOO_LARGE', message: 'Request body is too large' },
+    });
     return;
   }
 

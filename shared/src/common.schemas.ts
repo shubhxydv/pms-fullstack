@@ -41,6 +41,7 @@ export const errorCodeSchema = z.enum([
   'NOT_FOUND',
   'CONFLICT',
   'RATE_LIMITED',
+  'PAYLOAD_TOO_LARGE',
   'INTERNAL',
 ]);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;
