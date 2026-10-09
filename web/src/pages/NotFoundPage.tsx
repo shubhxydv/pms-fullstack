@@ -1,5 +1,7 @@
+// Fallback 404 page for unmatched routes.
 import { Link } from 'react-router-dom';
 
+// Renders 404 not-found message
 export function NotFoundPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-center">

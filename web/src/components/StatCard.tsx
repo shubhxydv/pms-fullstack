@@ -1,3 +1,5 @@
+// Small card used on the dashboard to show one labeled metric.
+// Renders a single metric tile
 export function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

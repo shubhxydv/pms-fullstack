@@ -1,3 +1,4 @@
+// Shape of admin-only API responses: audit log entries and user records.
 export interface AuditLogDto {
   id: string;
   userId: string | null;

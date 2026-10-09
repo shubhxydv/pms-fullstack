@@ -1,3 +1,4 @@
+// Home page: summary stat cards plus a due-soon task list.
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { fetchDashboard } from '../features/dashboard/api';
@@ -13,6 +14,7 @@ const priorityBadge: Record<string, string> = {
   HIGH: 'bg-red-100 text-red-700',
 };
 
+// Renders dashboard stats and due-soon list
 export function DashboardPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['dashboard'],

@@ -1,3 +1,5 @@
+// Visual bar showing completed-vs-total progress.
+// Renders percentage bar from counts
 export function ProgressBar({ completed, total }: { completed: number; total: number }) {
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
   return (

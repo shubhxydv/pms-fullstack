@@ -1,3 +1,4 @@
+// Create/edit project form, rendered inside a modal, validated with the shared zod schema.
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -19,6 +20,7 @@ interface ProjectFormModalProps {
   submitError: string | null;
 }
 
+// Renders project create/edit form
 export function ProjectFormModal({ project, onClose, onSubmit, submitError }: ProjectFormModalProps) {
   const isEdit = Boolean(project);
 
@@ -39,6 +41,7 @@ export function ProjectFormModal({ project, onClose, onSubmit, submitError }: Pr
       : { status: 'NOT_STARTED' },
   });
 
+  // Forwards validated form data up
   async function handleFormSubmit(input: CreateProjectInput) {
     await onSubmit(input);
   }

@@ -1,3 +1,4 @@
+// Generic modal dialog rendered in a portal, closable with Escape.
 import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -7,6 +8,7 @@ interface ModalProps {
   children: ReactNode;
 }
 
+// Renders dialog box in a portal
 export function Modal({ title, onClose, children }: ModalProps) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {

@@ -1,3 +1,4 @@
+// Sign-up form page.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +9,7 @@ import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { getApiErrorMessage } from '../lib/api/isApiError';
 
+// Renders sign-up form
 export function RegisterPage() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ export function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) });
 
+  // Submits registration, redirects on success
   async function onSubmit(input: RegisterInput) {
     setFormError(null);
     try {

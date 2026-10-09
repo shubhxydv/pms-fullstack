@@ -1,3 +1,4 @@
+// Shape of the dashboard summary payload shown on the home screen.
 export interface DueSoonTask {
   id: string;
   projectId: string;

@@ -1,3 +1,4 @@
+// Labeled text input with built-in error message display.
 import { forwardRef, type InputHTMLAttributes } from 'react';
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -5,6 +6,7 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
+// Renders labeled input with error
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   ({ label, error, id, ...rest }, ref) => {
     const fieldId = id ?? rest.name;

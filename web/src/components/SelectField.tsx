@@ -1,3 +1,4 @@
+// Labeled select dropdown with built-in error message display.
 import { forwardRef, type SelectHTMLAttributes } from 'react';
 
 interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -5,6 +6,7 @@ interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
   error?: string;
 }
 
+// Renders labeled dropdown with error
 export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
   ({ label, error, id, children, ...rest }, ref) => {
     const fieldId = id ?? rest.name;

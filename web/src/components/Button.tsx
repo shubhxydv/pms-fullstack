@@ -1,3 +1,4 @@
+// Reusable styled button with variant and loading-state support.
 import { type ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -11,6 +12,7 @@ const variantClass: Record<NonNullable<ButtonProps['variant']>, string> = {
   danger: 'bg-red-600 text-white hover:bg-red-500',
 };
 
+// Renders button with variant styling
 export function Button({
   variant = 'primary',
   isLoading = false,

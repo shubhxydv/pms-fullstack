@@ -1,3 +1,4 @@
+// Admin-only page: paginated table of audit log entries.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import * as adminApi from '../features/admin/api';
@@ -7,6 +8,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Pagination } from '../components/Pagination';
 import { getApiErrorMessage } from '../lib/api/isApiError';
 
+// Renders paginated audit log table
 export function AdminPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;

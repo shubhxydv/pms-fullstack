@@ -1,3 +1,4 @@
+// App shell shown on every protected page: top nav bar plus the current page's content.
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { useToast } from './ToastProvider';
@@ -7,11 +8,13 @@ const navLinkClass = ({ isActive }: { isActive: boolean }): string =>
     isActive ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
   }`;
 
+// Renders nav bar and page outlet
 export function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
+  // Logs user out, redirects home
   async function handleLogout() {
     try {
       await logout();

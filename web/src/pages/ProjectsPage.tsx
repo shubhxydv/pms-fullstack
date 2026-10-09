@@ -1,3 +1,4 @@
+// Projects list page: search/filter/sort, pagination, and project CRUD.
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -21,6 +22,7 @@ const statusBadge: Record<string, string> = {
   COMPLETED: 'bg-emerald-100 text-emerald-700',
 };
 
+// Renders project list with filters
 export function ProjectsPage() {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -37,6 +39,7 @@ export function ProjectsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProjectDto | null>(null);
 
+  // Debounces search input before querying
   useEffect(() => {
     const timeout = setTimeout(() => {
       setQ(searchInput);
@@ -89,6 +92,7 @@ export function ProjectsPage() {
     onError: (err) => showToast(getApiErrorMessage(err, 'Could not delete project'), 'error'),
   });
 
+  // Creates or updates project from form
   async function handleFormSubmit(input: CreateProjectInput | UpdateProjectInput) {
     setFormError(null);
     if (formTarget === 'new') {

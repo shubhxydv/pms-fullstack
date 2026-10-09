@@ -1,3 +1,4 @@
+// Login form page, including the "session expired" banner redirect flow.
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +10,7 @@ import { Button } from '../components/Button';
 import { consumeSessionExpiredMessage } from '../lib/api/client';
 import { getApiErrorMessage } from '../lib/api/isApiError';
 
+// Renders sign-in form
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export function LoginPage() {
     }
   }, []);
 
+  // Submits login, redirects on success
   async function onSubmit(input: LoginInput) {
     setFormError(null);
     try {

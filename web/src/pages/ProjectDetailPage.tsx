@@ -1,3 +1,4 @@
+// Single project view: task list with search/filter, inline status edits, and task CRUD.
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
@@ -20,6 +21,7 @@ const priorityBadge: Record<string, string> = {
   HIGH: 'bg-red-100 text-red-700',
 };
 
+// Renders one project and its tasks
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const { showToast } = useToast();
@@ -54,6 +56,7 @@ export function ProjectDetailPage() {
     enabled: Boolean(projectId),
   });
 
+  // Refetches tasks and project data
   function invalidateAll() {
     queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -95,6 +98,7 @@ export function ProjectDetailPage() {
     onError: (err) => showToast(getApiErrorMessage(err, 'Could not delete task'), 'error'),
   });
 
+  // Creates or updates task from form
   async function handleFormSubmit(input: CreateTaskInput | UpdateTaskInput) {
     setFormError(null);
     if (formTarget === 'new') {

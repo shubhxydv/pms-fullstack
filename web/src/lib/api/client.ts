@@ -1,3 +1,4 @@
+// Shared axios instance: attaches the access token to requests and auto-refreshes it on expiry.
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ErrorEnvelope } from '@pms/shared';
 import { getAccessToken, setAccessToken } from './tokenStore';
@@ -27,6 +28,7 @@ interface RetryableConfig extends InternalAxiosRequestConfig {
 
 let refreshPromise: Promise<string> | null = null;
 
+// Calls the refresh endpoint for a new token
 async function refreshAccessToken(): Promise<string> {
   const response = await axios.post<{ accessToken: string }>(
     '/api/auth/refresh',
@@ -36,12 +38,14 @@ async function refreshAccessToken(): Promise<string> {
   return response.data.accessToken;
 }
 
+// Clears token, redirects to login
 function forceLogout(): void {
   setAccessToken(null);
   sessionStorage.setItem(SESSION_EXPIRED_STORAGE_KEY, SESSION_EXPIRED_MESSAGE);
   window.location.href = '/login';
 }
 
+// Reads and clears the stored session-expired banner message
 export function consumeSessionExpiredMessage(): string | null {
   const message = sessionStorage.getItem(SESSION_EXPIRED_STORAGE_KEY);
   if (message) {

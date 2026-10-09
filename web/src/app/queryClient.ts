@@ -1,3 +1,4 @@
+// Shared React Query client with sensible app-wide defaults.
 import { QueryClient } from '@tanstack/react-query';
 
 export const queryClient = new QueryClient({

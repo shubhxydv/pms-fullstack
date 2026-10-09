@@ -1,3 +1,4 @@
+// Prev/next pager shown below paginated lists.
 import { Button } from './Button';
 
 interface PaginationProps {
@@ -6,6 +7,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
+// Renders prev/next page controls
 export function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
   if (totalPages <= 1) return null;
 

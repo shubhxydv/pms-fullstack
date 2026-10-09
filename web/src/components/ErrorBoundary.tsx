@@ -1,3 +1,4 @@
+// Catches render-time errors anywhere below it and shows a fallback UI.
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
@@ -11,10 +12,12 @@ interface State {
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
 
+  // Flags state once a child throws
   static getDerivedStateFromError(): State {
     return { hasError: true };
   }
 
+  // Logs the caught error
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error('Unhandled UI error:', error, info);
   }

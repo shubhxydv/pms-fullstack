@@ -1,3 +1,4 @@
+// Create/edit task form, rendered inside a modal, validated with the shared zod schema.
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -20,6 +21,7 @@ interface TaskFormModalProps {
   submitError: string | null;
 }
 
+// Renders task create/edit form
 export function TaskFormModal({ projectId, task, onClose, onSubmit, submitError }: TaskFormModalProps) {
   const isEdit = Boolean(task);
 

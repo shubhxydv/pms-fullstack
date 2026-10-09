@@ -1,3 +1,4 @@
+// Top-level app shell: sets up providers and all client-side routes.
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { queryClient } from './app/queryClient';
@@ -14,6 +15,7 @@ import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { AdminPage } from './pages/AdminPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+// Wires up providers and route tree
 export default function App() {
   return (
     <ErrorBoundary>

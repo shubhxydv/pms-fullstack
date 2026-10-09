@@ -1,3 +1,4 @@
+// Generic yes/no confirmation dialog, used before destructive actions.
 import { Modal } from './Modal';
 import { Button } from './Button';
 
@@ -10,6 +11,7 @@ interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
+// Renders confirm/cancel modal prompt
 export function ConfirmDialog({
   title,
   message,
