@@ -109,17 +109,29 @@ export async function refresh(rawToken: string, meta: SessionMeta): Promise<Auth
     throw AppError.unauthenticated('Invalid refresh token');
   }
 
-  if (session.revokedAt) {
-    // Reuse of a rotated token: revoke the whole family (possible token theft).
+  if (session.expiresAt < new Date()) {
+    throw AppError.unauthenticated('Refresh token expired');
+  }
+
+  // Atomically claim this session: the WHERE revokedAt: null makes this a single
+  // conditional UPDATE, so of two concurrent refresh() calls using the same token,
+  // only one can ever see count === 1. Without this, both could read revokedAt as
+  // null before either wrote it, and both would rotate the same token.
+  const claim = await prisma.$transaction((tx) =>
+    tx.session.updateMany({
+      where: { id: session.id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  );
+
+  if (claim.count !== 1) {
+    // Either we lost the race above, or this is reuse of an already-rotated token
+    // (possible theft) — either way, revoke the whole family rather than trust it.
     await prisma.session.updateMany({
       where: { familyId: session.familyId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
     throw AppError.unauthenticated('Refresh token has already been used');
-  }
-
-  if (session.expiresAt < new Date()) {
-    throw AppError.unauthenticated('Refresh token expired');
   }
 
   const { accessToken, refreshToken: newRefreshToken } = await createSession(
@@ -135,7 +147,7 @@ export async function refresh(rawToken: string, meta: SessionMeta): Promise<Auth
 
   await prisma.session.update({
     where: { id: session.id },
-    data: { revokedAt: new Date(), replacedBy: newSession?.id },
+    data: { replacedBy: newSession?.id },
   });
 
   return { user: toUserDto(session.user), accessToken, refreshToken: newRefreshToken };
