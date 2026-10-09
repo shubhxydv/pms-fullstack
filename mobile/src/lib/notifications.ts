@@ -1,19 +1,26 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as notificationsApi from '../features/notifications/api';
 
 // Push notification setup: permissions, device token registration, and tap handling.
 const ENABLED_KEY = 'pms:notificationsEnabled';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
+// Remote push notifications were removed from Expo Go in SDK 53+ and throw if touched at all —
+// only call the real notifications APIs in a real build (dev client / standalone app).
+const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+if (!IS_EXPO_GO) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 // Reads the saved notifications-on/off preference
 export async function getStoredPreference(): Promise<boolean> {
@@ -23,6 +30,7 @@ export async function getStoredPreference(): Promise<boolean> {
 
 // Requests permission and gets the push token
 async function getDeviceToken(): Promise<string | null> {
+  if (IS_EXPO_GO) return null;
   const { status: existing } = await Notifications.getPermissionsAsync();
   let status = existing;
   if (status !== 'granted') {
@@ -59,6 +67,7 @@ export async function enableNotifications(): Promise<boolean> {
 // Turns off notifications and unregisters the token
 export async function disableNotifications(): Promise<void> {
   await AsyncStorage.setItem(ENABLED_KEY, 'false');
+  if (IS_EXPO_GO) return;
   try {
     const { data } = await Notifications.getDevicePushTokenAsync();
     await notificationsApi.unregisterToken(data);
@@ -89,6 +98,7 @@ export interface NotificationTapData {
 export function subscribeToNotificationTaps(
   onTap: (data: NotificationTapData) => void,
 ): () => void {
+  if (IS_EXPO_GO) return () => {};
   Notifications.getLastNotificationResponseAsync()
     .then((response) => {
       if (response) {
