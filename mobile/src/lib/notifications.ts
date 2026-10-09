@@ -1,17 +1,21 @@
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import { isRunningInExpoGo } from 'expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as notificationsApi from '../features/notifications/api';
+import type * as NotificationsModule from 'expo-notifications';
 
 // Push notification setup: permissions, device token registration, and tap handling.
 const ENABLED_KEY = 'pms:notificationsEnabled';
 
-// Remote push notifications were removed from Expo Go in SDK 53+ and throw if touched at all —
-// only call the real notifications APIs in a real build (dev client / standalone app).
+// Remote push notifications were removed from Expo Go in SDK 53+ — and merely *importing*
+// expo-notifications there throws (one of its own files auto-registers a token listener at
+// module-load time). So the package must never be imported at all while running in Expo Go;
+// a guard placed after a static `import` is too late, since that import already ran.
 const IS_EXPO_GO = isRunningInExpoGo();
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Notifications: typeof NotificationsModule | null = IS_EXPO_GO ? null : require('expo-notifications');
 
-if (!IS_EXPO_GO) {
+if (Notifications) {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
@@ -30,7 +34,7 @@ export async function getStoredPreference(): Promise<boolean> {
 
 // Requests permission and gets the push token
 async function getDeviceToken(): Promise<string | null> {
-  if (IS_EXPO_GO) return null;
+  if (!Notifications) return null;
   const { status: existing } = await Notifications.getPermissionsAsync();
   let status = existing;
   if (status !== 'granted') {
@@ -67,7 +71,7 @@ export async function enableNotifications(): Promise<boolean> {
 // Turns off notifications and unregisters the token
 export async function disableNotifications(): Promise<void> {
   await AsyncStorage.setItem(ENABLED_KEY, 'false');
-  if (IS_EXPO_GO) return;
+  if (!Notifications) return;
   try {
     const { data } = await Notifications.getDevicePushTokenAsync();
     await notificationsApi.unregisterToken(data);
@@ -98,7 +102,7 @@ export interface NotificationTapData {
 export function subscribeToNotificationTaps(
   onTap: (data: NotificationTapData) => void,
 ): () => void {
-  if (IS_EXPO_GO) return () => {};
+  if (!Notifications) return () => {};
   Notifications.getLastNotificationResponseAsync()
     .then((response) => {
       if (response) {
