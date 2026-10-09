@@ -29,6 +29,7 @@ export default function TabsLayout() {
         name="projects"
         options={{
           title: 'Projects',
+          headerShown: false,
           tabBarIcon: ({ color }) => <TabIcon emoji="📁" color={color} />,
         }}
       />
