@@ -1,5 +1,7 @@
+// Dashboard tile showing one labeled number (e.g. total projects, overdue tasks).
 import { Text, View, StyleSheet } from 'react-native';
 
+// Renders a labeled stat tile
 export function StatCard({ label, value, tone = 'default' }: { label: string; value: number; tone?: 'default' | 'danger' }) {
   return (
     <View style={[styles.card, tone === 'danger' && styles.danger]}>

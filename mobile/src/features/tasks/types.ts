@@ -1,3 +1,4 @@
+// Shape of a task as returned by the API.
 import type { TaskPriority, TaskStatus } from '@pms/shared';
 
 export interface TaskDto {

@@ -1,5 +1,7 @@
+// Horizontal bar showing completed-vs-total task progress for a project.
 import { Text, View, StyleSheet } from 'react-native';
 
+// Renders a completion percentage bar
 export function ProgressBar({ completed, total }: { completed: number; total: number }) {
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
   return (

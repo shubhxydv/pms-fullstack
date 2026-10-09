@@ -1,10 +1,13 @@
+// Bottom tab navigator for the signed-in part of the app (Dashboard, Projects, Tasks, Settings).
 import { Tabs } from 'expo-router';
 import { Text, type ColorValue } from 'react-native';
 
+// Renders an emoji as a tab icon
 function TabIcon({ emoji, color }: { emoji: string; color: ColorValue }) {
   return <Text style={{ fontSize: 20, color }}>{emoji}</Text>;
 }
 
+// Defines the four main tabs
 export default function TabsLayout() {
   return (
     <Tabs

@@ -12,6 +12,8 @@ import { getApiErrorMessage } from '../../lib/api/isApiError';
 import { useNetworkStatus } from '../../hooks/use-network-status';
 import { useRefetchOnFocus } from '../../hooks/use-refetch-on-focus';
 
+// Dashboard tab: shows summary stats and tasks due soon.
+// Formats a timestamp as relative time
 function formatUpdatedAt(timestamp: number): string {
   const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
   if (minutes < 1) return 'just now';
@@ -19,6 +21,7 @@ function formatUpdatedAt(timestamp: number): string {
   return `${Math.round(minutes / 60)}h ago`;
 }
 
+// Loads dashboard data and renders it
 export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const isConnected = useNetworkStatus();

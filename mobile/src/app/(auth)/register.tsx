@@ -9,6 +9,8 @@ import { TextField } from '../../components/TextField';
 import { Button } from '../../components/Button';
 import { getApiErrorMessage } from '../../lib/api/isApiError';
 
+// Registration screen: name/email/password form that creates a new account.
+// Handles form submit and sign-up
 export default function RegisterScreen() {
   const { register: registerUser } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);

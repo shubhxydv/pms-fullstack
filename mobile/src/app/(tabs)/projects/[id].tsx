@@ -24,6 +24,8 @@ import { getApiErrorMessage } from '../../../lib/api/isApiError';
 import type { TaskDto } from '../../../features/tasks/types';
 import { useRefetchOnFocus } from '../../../hooks/use-refetch-on-focus';
 
+// Project detail screen: shows one project's info and its filtered task list.
+// Loads a single project and tasks
 export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { showToast } = useToast();
@@ -56,6 +58,7 @@ export default function ProjectDetailScreen() {
   useRefetchOnFocus(projectQuery.refetch);
   useRefetchOnFocus(tasksQuery.refetch);
 
+  // Refreshes task and project caches
   function invalidateAll() {
     queryClient.invalidateQueries({ queryKey: ['tasks', id] });
     queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -77,6 +80,7 @@ export default function ProjectDetailScreen() {
     onError: (err) => showToast(getApiErrorMessage(err, 'Could not delete task'), 'error'),
   });
 
+  // Asks before deleting a task
   function confirmDelete(task: TaskDto) {
     Alert.alert('Delete task', `Delete "${task.name}"? This cannot be undone.`, [
       { text: 'Cancel', style: 'cancel' },

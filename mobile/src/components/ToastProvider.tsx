@@ -1,3 +1,4 @@
+// Global toast notification system: context provider plus the useToast() hook.
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 
@@ -15,6 +16,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 let nextId = 1;
 
+// Holds and auto-dismisses active toasts
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -48,6 +50,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Gives access to showToast()
 export function useToast(): ToastContextValue {
   const context = useContext(ToastContext);
   if (!context) {

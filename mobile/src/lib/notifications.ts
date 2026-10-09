@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as notificationsApi from '../features/notifications/api';
 
+// Push notification setup: permissions, device token registration, and tap handling.
 const ENABLED_KEY = 'pms:notificationsEnabled';
 
 Notifications.setNotificationHandler({
@@ -14,11 +15,13 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Reads the saved notifications-on/off preference
 export async function getStoredPreference(): Promise<boolean> {
   const value = await AsyncStorage.getItem(ENABLED_KEY);
   return value === 'true';
 }
 
+// Requests permission and gets the push token
 async function getDeviceToken(): Promise<string | null> {
   const { status: existing } = await Notifications.getPermissionsAsync();
   let status = existing;
@@ -53,6 +56,7 @@ export async function enableNotifications(): Promise<boolean> {
   return true;
 }
 
+// Turns off notifications and unregisters the token
 export async function disableNotifications(): Promise<void> {
   await AsyncStorage.setItem(ENABLED_KEY, 'false');
   try {
@@ -80,6 +84,7 @@ export interface NotificationTapData {
   projectId?: string;
 }
 
+// Listens for taps on push notifications
 /** Subscribes to notification taps (including the one that cold-launched the app) and calls `onTap` with its data. */
 export function subscribeToNotificationTaps(
   onTap: (data: NotificationTapData) => void,

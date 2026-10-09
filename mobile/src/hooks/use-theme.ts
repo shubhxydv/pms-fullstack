@@ -6,6 +6,7 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+// Resolves the current color scheme into theme color tokens
 export function useTheme() {
   const scheme = useColorScheme();
   const theme = scheme === 'unspecified' ? 'light' : scheme;

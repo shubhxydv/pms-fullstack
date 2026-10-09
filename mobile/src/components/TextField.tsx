@@ -1,3 +1,4 @@
+// Labeled text input with an optional inline validation error message.
 import { forwardRef } from 'react';
 import { Text, TextInput, View, StyleSheet, type TextInputProps } from 'react-native';
 
@@ -6,6 +7,7 @@ interface TextFieldProps extends TextInputProps {
   error?: string;
 }
 
+// Renders a labeled input with error text
 export const TextField = forwardRef<TextInput, TextFieldProps>(({ label, error, style, ...rest }, ref) => {
   return (
     <View style={styles.container}>

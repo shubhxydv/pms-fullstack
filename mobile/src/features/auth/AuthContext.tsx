@@ -5,6 +5,7 @@ import type { UserDto } from './types';
 import { loadTokensFromStorage } from '../../lib/api/tokenStore';
 import { setForcedLogoutHandler } from '../../lib/api/client';
 
+// Auth state: current user, bootstrap/session-expiry flags, login/register/logout actions.
 interface AuthContextValue {
   user: UserDto | null;
   isBootstrapping: boolean;
@@ -17,6 +18,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Holds the auth session and exposes login/register/logout
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserDto | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -55,18 +57,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Signs a user in
   async function login(input: LoginInput): Promise<void> {
     const loggedInUser = await authApi.login(input);
     setSessionExpired(false);
     setUser(loggedInUser);
   }
 
+  // Creates a new account
   async function register(input: RegisterInput): Promise<void> {
     const registeredUser = await authApi.register(input);
     setSessionExpired(false);
     setUser(registeredUser);
   }
 
+  // Signs the user out
   async function logout(): Promise<void> {
     await authApi.logout();
     setUser(null);
@@ -85,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Gives access to the auth context
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {

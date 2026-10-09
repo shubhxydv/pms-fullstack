@@ -1,6 +1,8 @@
+// Error panel with a message and a retry button, used after a failed fetch.
 import { Text, View, StyleSheet } from 'react-native';
 import { Button } from './Button';
 
+// Shows an error with a retry button
 export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <View style={styles.container}>

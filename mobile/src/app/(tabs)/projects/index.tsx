@@ -15,6 +15,8 @@ import { getApiErrorMessage } from '../../../lib/api/isApiError';
 import type { ProjectDto } from '../../../features/projects/types';
 import { useRefetchOnFocus } from '../../../hooks/use-refetch-on-focus';
 
+// Projects list screen: search, filter, paginate, and manage projects.
+// Loads and renders the projects list
 export default function ProjectsScreen() {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -55,6 +57,7 @@ export default function ProjectsScreen() {
     onError: (err) => showToast(getApiErrorMessage(err, 'Could not delete project'), 'error'),
   });
 
+  // Asks before deleting a project
   function confirmDelete(project: ProjectDto) {
     Alert.alert('Delete project', `Delete "${project.name}"? This will also delete all of its tasks.`, [
       { text: 'Cancel', style: 'cancel' },

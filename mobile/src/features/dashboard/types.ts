@@ -1,3 +1,4 @@
+// Shapes of the dashboard API response.
 export interface DueSoonTask {
   id: string;
   projectId: string;

@@ -9,6 +9,8 @@ import { TextField } from '../../components/TextField';
 import { Button } from '../../components/Button';
 import { getApiErrorMessage } from '../../lib/api/isApiError';
 
+// Login screen: email/password form that signs the user in.
+// Handles form submit and sign-in
 export default function LoginScreen() {
   const { login, sessionExpired, dismissSessionExpired } = useAuth();
   const [formError, setFormError] = useState<string | null>(

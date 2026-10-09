@@ -13,6 +13,8 @@ import { getApiErrorMessage } from '../../lib/api/isApiError';
 import type { TaskDto } from '../../features/tasks/types';
 import { useRefetchOnFocus } from '../../hooks/use-refetch-on-focus';
 
+// All Tasks tab: shows every task across projects, with search and filters.
+// Loads and renders all tasks
 export default function AllTasksScreen() {
   const { showToast } = useToast();
   const queryClient = useQueryClient();

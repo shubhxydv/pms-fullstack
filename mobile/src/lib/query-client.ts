@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// React Query client setup plus AsyncStorage persistence config for offline caching.
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export const queryClient = new QueryClient({

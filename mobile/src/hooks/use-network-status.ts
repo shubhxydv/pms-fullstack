@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 
+// Tracks whether the device currently has a working internet connection.
 export function useNetworkStatus(): boolean {
   const [isConnected, setIsConnected] = useState(true);
 

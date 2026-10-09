@@ -13,6 +13,8 @@ import { ToastProvider } from '../components/ToastProvider';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { reregisterIfEnabled, subscribeToNotificationTaps } from '../lib/notifications';
 
+// Root layout: sets up providers (query cache, auth, toasts) and the top-level
+// navigator that switches between the auth stack and the signed-in tabs.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // React Query has no "window focus" event on native — AppState is the equivalent,
@@ -21,6 +23,7 @@ AppState.addEventListener('change', (status: AppStateStatus) => {
   focusManager.setFocused(status === 'active');
 });
 
+// Switches between auth stack and tabs
 function RootNavigator() {
   const { user, isBootstrapping } = useAuth();
 
@@ -58,6 +61,7 @@ function RootNavigator() {
   );
 }
 
+// Wraps the app in all providers
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

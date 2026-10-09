@@ -10,6 +10,8 @@ import {
 } from '../../lib/notifications';
 import { sendTestPush } from '../../features/notifications/api';
 
+// Settings screen: account info, notification toggle, test push, and logout.
+// Shows account info and controls
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const { showToast } = useToast();
@@ -22,6 +24,7 @@ export default function SettingsScreen() {
     getStoredPreference().then(setNotificationsEnabled);
   }, []);
 
+  // Turns push notifications on or off
   async function handleToggleNotifications(next: boolean) {
     setIsTogglingNotifications(true);
     try {
@@ -43,6 +46,7 @@ export default function SettingsScreen() {
     }
   }
 
+  // Sends a one-off test push notification
   async function handleTestPush() {
     setIsSendingTestPush(true);
     try {
@@ -58,6 +62,7 @@ export default function SettingsScreen() {
     }
   }
 
+  // Logs the current user out
   async function handleLogout() {
     setIsLoggingOut(true);
     try {
@@ -69,6 +74,7 @@ export default function SettingsScreen() {
     }
   }
 
+  // Asks for confirmation before logout
   function confirmLogout() {
     Alert.alert('Log out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },

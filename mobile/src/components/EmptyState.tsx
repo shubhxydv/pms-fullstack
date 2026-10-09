@@ -1,5 +1,7 @@
+// Placeholder box shown when a list has no items.
 import { Text, View, StyleSheet } from 'react-native';
 
+// Shows a centered empty message
 export function EmptyState({ message }: { message: string }) {
   return (
     <View style={styles.container}>

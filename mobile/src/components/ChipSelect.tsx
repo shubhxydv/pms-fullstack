@@ -1,3 +1,4 @@
+// Row of tappable chips used as a single-select control (status, priority filters, etc.).
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 
 interface Option<T extends string> {
@@ -12,6 +13,7 @@ interface ChipSelectProps<T extends string> {
   onChange: (value: T) => void;
 }
 
+// Renders selectable chip options
 export function ChipSelect<T extends string>({ label, value, options, onChange }: ChipSelectProps<T>) {
   return (
     <View style={styles.container}>

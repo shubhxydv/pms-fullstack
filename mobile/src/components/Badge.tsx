@@ -1,3 +1,4 @@
+// Small colored pill that labels a status or priority value.
 import { Text, StyleSheet } from 'react-native';
 
 const palettes: Record<string, { bg: string; fg: string }> = {
@@ -10,6 +11,7 @@ const palettes: Record<string, { bg: string; fg: string }> = {
   COMPLETED: { bg: '#D1FAE5', fg: '#047857' },
 };
 
+// Colors a label by its value
 export function Badge({ label }: { label: string }) {
   const palette = palettes[label] ?? palettes.PENDING;
   return (

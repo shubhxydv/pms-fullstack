@@ -1,6 +1,8 @@
+// Red banner shown app-wide whenever the device has no network connection.
 import { Text, View, StyleSheet } from 'react-native';
 import { useNetworkStatus } from '../hooks/use-network-status';
 
+// Shows a banner when offline
 export function OfflineBanner() {
   const isConnected = useNetworkStatus();
   if (isConnected) return null;

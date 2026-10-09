@@ -19,6 +19,8 @@ import { Spinner } from '../components/Spinner';
 import { useToast } from '../components/ToastProvider';
 import { getApiErrorMessage } from '../lib/api/isApiError';
 
+// Modal screen for creating or editing a project, shared between both flows.
+// Loads existing data and submits changes
 export default function ProjectFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEdit = Boolean(id);
@@ -74,6 +76,7 @@ export default function ProjectFormScreen() {
     onError: (err) => setSubmitError(getApiErrorMessage(err, 'Could not update project')),
   });
 
+  // Routes submit to create or update
   function onSubmit(input: CreateProjectInput) {
     setSubmitError(null);
     if (isEdit) {

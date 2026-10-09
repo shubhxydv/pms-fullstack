@@ -1,3 +1,4 @@
+// Date picker field: shows the chosen date and opens the native picker on tap.
 import { useState } from 'react';
 import { Platform, Pressable, Text, View, StyleSheet } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
@@ -9,6 +10,7 @@ interface DateFieldProps {
   onChange: (isoDate: string) => void;
 }
 
+// Formats a Date as a local YYYY-MM-DD string
 function toDateString(date: Date): string {
   // Use local calendar fields, not toISOString() — that converts to UTC first, which
   // rolls the date back (or forward) a day for any timezone offset from UTC.
@@ -18,10 +20,12 @@ function toDateString(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// Parses a YYYY-MM-DD string as local midnight
 function toDate(value: string): Date {
   return value ? new Date(`${value}T00:00:00`) : new Date();
 }
 
+// Shows a date value, opens native picker
 export function DateField({ label, value, error, onChange }: DateFieldProps) {
   const [showPicker, setShowPicker] = useState(false);
 

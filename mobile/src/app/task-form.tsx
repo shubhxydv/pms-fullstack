@@ -14,6 +14,8 @@ import { Spinner } from '../components/Spinner';
 import { useToast } from '../components/ToastProvider';
 import { getApiErrorMessage } from '../lib/api/isApiError';
 
+// Modal screen for creating or editing a task, shared between both flows.
+// Loads existing data and submits changes
 export default function TaskFormScreen() {
   const { projectId, id } = useLocalSearchParams<{ projectId: string; id?: string }>();
   const isEdit = Boolean(id);
@@ -49,6 +51,7 @@ export default function TaskFormScreen() {
     }
   }, [taskQuery.data, reset]);
 
+  // Refreshes task, project, dashboard caches
   function invalidateAll() {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -75,6 +78,7 @@ export default function TaskFormScreen() {
     onError: (err) => setSubmitError(getApiErrorMessage(err, 'Could not update task')),
   });
 
+  // Routes submit to create or update
   function onSubmit(input: CreateTaskInput) {
     setSubmitError(null);
     if (isEdit) {

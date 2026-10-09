@@ -1,3 +1,4 @@
+// Shared pressable button with primary/secondary/danger styles and a loading spinner.
 import { ActivityIndicator, Pressable, Text, StyleSheet, type PressableProps } from 'react-native';
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
@@ -6,6 +7,7 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
   isLoading?: boolean;
 }
 
+// Renders a styled, loading-aware button
 export function Button({ title, variant = 'primary', isLoading = false, disabled, ...rest }: ButtonProps) {
   const isDisabled = disabled || isLoading;
   return (

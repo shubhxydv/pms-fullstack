@@ -2,6 +2,7 @@ import axios, { type InternalAxiosRequestConfig, type AxiosError } from 'axios';
 import type { ErrorEnvelope } from '@pms/shared';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
+// Shared axios instance: attaches the access token and auto-refreshes it on expiry.
 export const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please sign in again.';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://pms-backend-qiir.onrender.com/api';
@@ -28,10 +29,12 @@ interface RetryableConfig extends InternalAxiosRequestConfig {
 let refreshPromise: Promise<string> | null = null;
 let onForcedLogout: (() => void) | null = null;
 
+// Registers the callback run on forced logout
 export function setForcedLogoutHandler(handler: () => void): void {
   onForcedLogout = handler;
 }
 
+// Exchanges the refresh token for a new access token
 async function refreshAccessToken(): Promise<string> {
   const currentRefreshToken = getRefreshToken();
   if (!currentRefreshToken) {
@@ -46,6 +49,7 @@ async function refreshAccessToken(): Promise<string> {
   return response.data.accessToken;
 }
 
+// Retries a 401 once after refreshing the token
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ErrorEnvelope>) => {

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useFocusEffect } from 'expo-router';
 
+// Re-runs a query's refetch whenever its screen comes back into focus.
 /**
  * Refetches whenever this screen regains focus (e.g. switching back to this tab),
  * which React Query does not do on its own in React Native — there's no "window

@@ -1,3 +1,4 @@
+// Shape of a project as returned by the API.
 import type { ProjectStatus } from '@pms/shared';
 
 export interface ProjectDto {
