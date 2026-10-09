@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { isRunningInExpoGo } from 'expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as notificationsApi from '../features/notifications/api';
 
@@ -9,7 +9,7 @@ const ENABLED_KEY = 'pms:notificationsEnabled';
 
 // Remote push notifications were removed from Expo Go in SDK 53+ and throw if touched at all —
 // only call the real notifications APIs in a real build (dev client / standalone app).
-const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+const IS_EXPO_GO = isRunningInExpoGo();
 
 if (!IS_EXPO_GO) {
   Notifications.setNotificationHandler({
