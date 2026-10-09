@@ -10,7 +10,12 @@ interface DateFieldProps {
 }
 
 function toDateString(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  // Use local calendar fields, not toISOString() — that converts to UTC first, which
+  // rolls the date back (or forward) a day for any timezone offset from UTC.
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function toDate(value: string): Date {
